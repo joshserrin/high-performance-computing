@@ -38,7 +38,7 @@ void main(int argc, char **argv) {
 	RoomyArray_sync(x);
 	RoomyList_sync(y);
 
-	printf("Num elts in x: %llo\n", RoomyArray_size(x));
-	printf("Num elts in y: %llo\n", RoomyList_size(y));
+	printf("Num elts in x: %lli\n", RoomyArray_size(x));
+	printf("Num elts in y: %lli\n", RoomyList_size(y));
 	printf("\n");
 }
