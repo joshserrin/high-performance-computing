@@ -1,44 +1,57 @@
 #include <stdio.h>
 #include <roomy.h>
 #include <RoomyArray.h>
-#include <RoomyList.h>
 
-RoomyArray *x;
-RoomyList *y;
+#define N 10
+RoomyArray *x, *y;
 
-void addElement(uint64 i, void* oldVal, void* newValOut) {
-	*(uint64*)newValOut = 9999-i;
-}
-void addToY(uint64 i, void *arrVal, void *passedVal) {
-	// arrVal needs to be added to y
-	RoomyList_add(y, arrVal);
-}
-void getXsubXi(uint64 i, void *val) {
-	// Add x[val] to y
-	// val is already x[i]
-	RoomyArray_access(x, *(uint64 *)val, NULL, addToY);
-	
-}
+void addElement(uint64 i, void *oldVal, void *newValOut);
+void printElements(uint64 i, void *val);
+void addToY(uint64 i, void *val);
+void setInY(uint64 xi, void *arrVal, void *passedValue);
+void setYi(uint64 i, void *oldVal, void *updateVal, void *newValOut);
+ 
 void main(int argc, char **argv) {
+	printf("---- start ----\n");
 	Roomy_init(&argc, &argv);
 
-	uint64 numElts = 10000;
-	x =  RoomyArray_makeBytes("x", sizeof(uint64), numElts);
+	x =  RoomyArray_makeBytes("x", sizeof(uint64), N);
 
 	// Populate the RA with values from 9999 to 0	
 	RoomyArray_mapAndModify(x, addElement);
-
-	y = RoomyList_make("y", sizeof(uint64));
-
-	// Populate the RL with x[x[i]]
-	// 0 indicated NULL is passed
-	RoomyArray_registerAccessFunc(x, addToY, 0);
-	RoomyArray_map(x, getXsubXi);
-
 	RoomyArray_sync(x);
-	RoomyList_sync(y);
+	//RoomyArray_map(x, printElements);
 
-	printf("Num elts in x: %lli\n", RoomyArray_size(x));
-	printf("Num elts in y: %lli\n", RoomyList_size(y));
-	printf("\n");
+	y = RoomyArray_makeBytes("y", sizeof(uint64), N);
+	RoomyArray_registerAccessFunc(x, setInY, sizeof(uint64));
+	RoomyArray_registerUpdateFunc(y, setYi, sizeof(uint64));
+	RoomyArray_map(x, addToY);
+	RoomyArray_sync(x);
+	RoomyArray_sync(y);
+
+	printf("x:\n");
+	RoomyArray_map(x, printElements);
+	printf("y:\n");
+	RoomyArray_map(y, printElements);
+	printf("---- done ----\n");
+}
+void printElements(uint64 i, void *val) {
+	printf("%lli = %lli\n", i, *(uint64 *)val);
+}
+// Set the RoomyArray's i_th element as N-i-1
+void addElement(uint64 i, void* oldVal, void* newValOut) {
+	*(uint64*)newValOut = N-i-1;
+}
+// val is x[i]
+void addToY(uint64 i, void *val) {
+	RoomyArray_access(x, *(uint64 *)val, &i, setInY);
+}
+// arrVal is x[x[i]] where...
+// xi is x[i]
+// passedValue is i
+void setInY(uint64 xi, void *arrVal, void *passedValue) {
+	RoomyArray_update(y, *(uint64 *)passedValue, arrVal, setYi);
+}
+void setYi(uint64 i, void *oldVal, void *updateVal, void *newValOut) {
+	*(uint64 *)newValOut = *(uint64 *)updateVal;
 }
