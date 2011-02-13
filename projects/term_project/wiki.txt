@@ -1,0 +1,84 @@
+{note}
+*General Overview of the Contents of this Page*
+This page should follow the layout and discussion of a research paper.  It functions less as a general wiki paper and more of a public location for the Professor, TAs and students to understand what the team has presently done.  At the end of this semster (Spring 2011) this will contain the paper in final form.
+The Professor, TAs and studens are encouraged to comment or edit this paper.  The team is maintaining an up-to-date version of this page \[in wiki markup language\] and will provide changes to the wiki when appropriate.
+Some sections include \{note\}s.  These notes are meant to describe what is/will be contained in the section.  Over time, when the sections are finalized, these notes will be removed.
+Throughout the semester this paper will mix tenses (past, present and/or future).  Past tense will reflect what was done.  Present tense reflects what is currently being worked on.  And, future tense reflects what will be worked on.  At the end of this semester, most of the paper will be in past tense as it will reflect the work that was done, but, possibly, section discussing Future Work will be in future tense.
+{note}
+
+h1. Abstract
+{note}
+Brief introduction of what I will be doing for the project.  Over time this will be updated to reflect what is contained in this paper.
+{note}
+
+h1. Introduction
+In the computer science field, many problems can be solved using graphing tools \[3\].  In some situations the entire graph exceeds RAM limitations and therefore require disk storage.  Disk access is inherently slower than RAM access and, therefore, application performance will greatly degrade as soon as disk storage is introduced.  Also, single disk storage is sometime insufficient to store the entire graph therefore leading to the original space limitations.  To mitigate the risk of reduced storage capacity, clusters of disks can be used where each disk can communicate over a network.  When this approach is used, not only do we have degraded performance due to I/O operations from RAM to disk of a local machine but we also experience degradation due to network issues (e.g., latency).
+
+Given the environment described above, applications using sequential operations will be infeasible.  Sequential data access will result in only one active machine on the cluster at a time.  Given a lab of N nodes in a cluster, N-1 nodes will be inactive at any given time.  To reduce inactive systems, parallelism can be introduced allowing for operations to be performed at the same time.  Using this paradigm, we could theoretically have all N nodes actively performing operations at the same time.  (A more indepth explanation of parallelism is outside the scope of this paper.)
+
+Using a framework to solve a problem that has a solution space that far exceeds today's high-end RAM limitations (commercially, around 12GB of SDRAM) is not only helpful but a requirement.  Roomy [http://sourceforge.net/apps/trac/roomy/] is a framework that provides these necessary parallelism and disk-space I/O functions.  It has an API that hides these functions such that programmers need to not focus on I/O operations or parallel programming complexities but only on the logic of their solution.  Roomy contains the following data structures \[2\]:
+- RoomyArray: a fixed size, indexed array of elements
+- RoomyList: a dynamically sized, unordered list of elements 
+- RoomyHashTable: a dynamically sized structure mapping _keys_ to _values_
+
+These data structures provide basic data storage in their own way (refer to \[2\] for indepth explanation) but none explicitly represent data as a graph or contain common search algorithms like breadth-first search (BFS) [http://en.wikipedia.org/wiki/Breadth-first_search].  When needed the graph representation and search algorithms have been reimplemented where each implementation might be slightly different.
+
+Given the above problem, we will implement a new data structure called RoomyGraph.  An indepth explanation is described in the following section.
+
+h1. RoomyGraph
+A RoomyGraph is a *directed graph* containing nodes and edges.  Its underlying representation is a RoomyHashTable (RHS) where a node is a key and a list of nodes is the value associated with that key.  A single edge is represented as a key (node) of the RHS and element of the value (list of nodes).  The edge's direction originates from the key such that if the key is 'A' and an element of the value (list of nodes) is 'B', then A->B.
+
+h2. Application Programming Interface (API)
+The following methods is the public API for constructing and using a RoomyGraph.  It is recommended to use these, and only these functions, when using a RoomyGraph.
+
+h3. Making a RoomyGraph
+Constructs a RoomyGraph with the following parameters:
+- name: the name of the RoomyGraph
+- bytesPerelt: The number of types that a node will occupy.  For instance, if your nodes are 64-bit integers, you could use _sizeof(uint64)_
+- maxEdges: The maximum number of edges that can originate from a node.
+- initialCapacity: A requirement of the RoomyHashTable that has been exposed to users of RoomyGraph.  This allows the programmer to provide the initial number of entries that the RoomyGraph will contain.  If the number of entries inserted exceeds the RHS's current capacity, the capacity is increased.  Because this processes of expansion can negatively impact performance, it is best to provide an accurate capacity during construction.
+{code}
+RoomyGraph* RoomyGraph_makeBytes(char* name, uint64 bytesPerElt, uint64 maxEdges, uint64 initialCapacity);
+{code}
+
+h3. Adding a Node
+h3. Adding an Edge between Nodes
+h2. Current Limitations
+- Due to the inability to have a dynamic value sized in RoomyHashTable, you currently need to specify the maximum number of edges that originate from any given node.  In some situations this is highly acceptable and could model the domain precisely.  For instance, given the rubic cube problem, there is a finite and consistent number of moves that can be taken given the current cube configuration.  Twelve to be exact (* needs to be confirmed).  So, in this case, your node type is an object representing the current configuration of the rubic cube, and it has 12 edges representing the next configuration from each possible move.
+
+h2. Usage Examples
+
+h1. Algorithms
+{note}
+Provide an overview (very brief) of the algorithms that have been implemented.  Show their API and give small code snippets of how they were used.
+Main areas of focus
+- A\* [http://en.wikipedia.org/wiki/A*]
+Possible generalized algorithms to include
+- Breadth-First Search [http://en.wikipedia.org/wiki/Breadth-first_search]
+- Depth-First Search [http://en.wikipedia.org/wiki/Depth_first_search] and [http://en.wikipedia.org/wiki/Depth-first_search_with_iterative_deepening]
+- Bidirectional search [http://en.wikipedia.org/wiki/Bidirectional_search]
+- Single-source Shortest Path [http://en.wikipedia.org/wiki/Shortest_path_problem]
+{note}
+
+h1. Testing
+{note}
+Discuss the testing plan to provide what was implemented actually works
+{note}
+
+h2. Sanity Check
+- small test, possiblity with made up, fixed maze. Manhattan distance [http://en.wikipedia.org/wiki/Manhattan_distance]
+
+h2. Large-scale Testbed
+- I need to discuss with the Prof. what problems he would recommend.  During 2/3 lecture, he said that he has contact with a UNH professor that has some background and could possibly provide a good test application
+
+h1. Future Work
+- dynamic edge counts
+- undirected graph
+
+h1. Conclusion
+
+h1. References
+\[1\] *Parallel Astar Search on Message-Passing Architectures* by Z. Cvetanovic and C. Nofsinger, Digital Equipment Corporation, IEEE 1990.
+\[2\] *Roomy: A System for Space Limited Computations* by Daniel Kunkle, Northeastern University, ACM 2010.
+\[3\] [http://en.wikipedia.org/wiki/Graph_theory].
+
