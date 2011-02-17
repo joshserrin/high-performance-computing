@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "RoomyGraph.h"
 #include <string.h>
 #include <RoomyHashTable.h>
@@ -16,5 +17,10 @@ RoomyGraph* RoomyGraph_makeBytes(char* name, uint64 bytesPerElt, uint64 maxEdges
   g->graph = RoomyHashTable_make(name, keySize, valueSize, initialCapacity);
   g->maxEdges = maxEdges;
 
-  return graph;
+  return g;
 }
+/*
+void main(void) {
+  printf("compiles!");
+}
+*/
