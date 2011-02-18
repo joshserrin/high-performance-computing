@@ -9,11 +9,13 @@
 
 RoomyGraph* RoomyGraph_makeBytes(char* name, uint64 bytesPerElt, uint64 maxEdges, 
                                  uint64 initialCapacity) {
-  RoomyGraph* g = MALLOC(sizeof(RoomyGraph));
+  RoomyGraph* g = (RoomyGraph *)malloc(sizeof(RoomyGraph));
 
   uint64 keySize = bytesPerElt;
   uint64 valueSize = maxEdges*bytesPerElt;
 
+  printf("name = %s \n",name);
+	fflush(stdout);
   g->graph = RoomyHashTable_make(name, keySize, valueSize, initialCapacity);
   g->maxEdges = maxEdges;
 

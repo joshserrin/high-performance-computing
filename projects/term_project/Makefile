@@ -1,7 +1,7 @@
 CC=mpicc
 ROOMY_INSTALL=/home/jserrin/roomy-install
 SRC=src
-CFLAGS= -I$(SRC)/ -I$(ROOMY_INSTALL)/include -L$(ROOMY_INSTALL)/lib $(ROOMY_INSTALL)/lib/libroomy.a -lmpich -lpthread -lm
+CFLAGS= -g -O0 -I$(ROOMY_INSTALL)/include -L$(ROOMY_INSTALL)/lib $(ROOMY_INSTALL)/lib/libroomy.a -lmpich -lpthread -lm
 
 _DEPS=RoomyGraph.h
 DEPS=$(patsubst %, $(SRC)/%, $(_DEPS))
@@ -25,3 +25,4 @@ tests: compile_roomy_graph $(TESTS)
 
 clean:
 	rm -f $(SRC)/*.o
+	rm -f RoomyGraphTest
