@@ -1,6 +1,7 @@
 CC=mpicc
 ROOMY_INSTALL=/home/jserrin/roomy-install
 SRC=src
+# -g : used for debugging.  If not required, remove it.
 CFLAGS= -g -O0 -I$(ROOMY_INSTALL)/include -L$(ROOMY_INSTALL)/lib $(ROOMY_INSTALL)/lib/libroomy.a -lmpich -lpthread -lm
 
 _DEPS=RoomyGraph.h

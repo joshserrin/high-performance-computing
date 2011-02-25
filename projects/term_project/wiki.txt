@@ -82,3 +82,7 @@ h1. References
 \[2\] *Roomy: A System for Space Limited Computations* by Daniel Kunkle, Northeastern University, ACM 2010.
 \[3\] [http://en.wikipedia.org/wiki/Graph_theory].
 
+h1. Appendix
+h2. Troubleshooting
+h3. Don't forget to call Roomy_init
+After creating a test file that created a RoomyHashTable named "a", Roomy was throwing an exception saying that it *'cannot create directory /a'*.  Vlad and I troubleshot this for a while and eventually we found determined that Roomy_init was not being called before RoomyHashTable_make was being called.
