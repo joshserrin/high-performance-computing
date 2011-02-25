@@ -53,3 +53,13 @@ void RoomyGraph_print(RoomyGraph *g);
 
 /* Returns the number of nodes in the RoomyGraph */
 int RoomyGraph_nodeCount(RoomyGraph *g);
+
+/* Adds an directed edge originating at from and terminating at to.  It is
+   assumed that the nodes have already been added.  There is no check to 
+	 ensure this, though. 
+	 NOTE: this is a delayed operation */
+void RoomyGraph_addEdge(RoomyGraph *g, void* from, void* to);
+
+/* Returns 1 if an edge originating at from and terminating at to is contained
+		within the RoomyGraph */
+int RoomyGraph_containsEdge(RoomyGraph *g, void* from, void* to);

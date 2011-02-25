@@ -16,13 +16,29 @@ int main(int argc, char ** argv) {
 		 containsNodeTest() &&
 		 addMultipleNodes() &&
 		 ableToAddMoreThanInitialSize() &&
-		 addingSameNodeDoesntIncreaseCount()) {
+		 addingSameNodeDoesntIncreaseCount() &&
+		 addEdgeTest()) {
     printf("All tests passed\n");
   } else {
     printf("ERROR OCCURRED... SEE LOGS\n");
   }
 	
 	Roomy_finalize();
+}
+int addEdgeTest() {
+	RoomyGraph *g = RoomyGraph_make("addEdgeTest", sizeof(uint64), 2, 2);
+	uint64 from = 2;
+	uint64 to = 4;
+	RoomyGraph_addNode(g, &from);
+	RoomyGraph_addNode(g, &to);
+	RoomyGraph_addEdge(g, &from, &to);
+	RoomyGraph_sync(g);
+
+	assert(TRUE == RoomyGraph_containsEdge(g, &from, &to));
+
+	RoomyGraph_destroy(g);
+	printf("addEdgeTest completed successfully.\n");
+	return PASSED;
 }
 int addingSameNodeDoesntIncreaseCount() {
 	RoomyGraph *g = RoomyGraph_make("multiAdds", sizeof(uint64), 2, 2);
@@ -39,6 +55,9 @@ int addingSameNodeDoesntIncreaseCount() {
 	RoomyGraph_addNode(g, &node2);
 	RoomyGraph_sync(g);
 	assert(2 == RoomyGraph_nodeCount(g));
+	
+	RoomyGraph_destroy(g);
+
 	printf("addingSameNodeDoesntIncreaseCount completed successfully.\n");
 	return PASSED;
 }
