@@ -66,4 +66,4 @@ void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to);
 
 /* Returns 1 if an edge originating at from and terminating at to is contained
 		within the RoomyGraph */
-int RoomyGraph_containsEdge(RoomyGraph *g, uint64* from, uint64* to);
+int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to);
