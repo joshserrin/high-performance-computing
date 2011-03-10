@@ -13,7 +13,7 @@ void RoomyGraph_destroy(RoomyGraph *g) {
 void RoomyGraph_addNode(RoomyGraph *g, uint64* node) {
 	// We are adding 1 because that is what stores the stored
 	// number of edges.
-	void *EMPTY = calloc(1 + g->maxEdges, sizeof(uint64));
+	void *EMPTY = calloc((1 + g->maxEdges), sizeof(uint64));
 	RoomyHashTable_insert(g->graph, node, EMPTY);
 }
 void RoomyGraph_sync(RoomyGraph *g) {
@@ -48,26 +48,47 @@ int RoomyGraph_nodeCount(RoomyGraph *g) {
 	return count;
 }
 void printNodeAndChildren(void *k, void *v) {
-	printf("%lli -> [%p]\n", *(uint64 *)k, v);
+	uint64 *edges = (uint64 *)v;
+	uint64 size = edges[0];
+	uint64 i;
+	printf("%lli -> [", *(uint64 *)k);
+	for(i = 0; i < size; i++) {
+		uint64 edge = edges[i + 1];
+		printf("%lli, ", edge);
+	}
+	printf("]\n");
 }
 void RoomyGraph_print(RoomyGraph *g) {
 	RoomyHashTable_map(g->graph, printNodeAndChildren);
 	RoomyGraph_sync(g);
 }
+typedef struct {
+	uint64 newEdge;
+	uint64 maxEdges;
+} AddEdgePassed;
 // Private function that adds the newEdge to the nodes edgeList
-void addEdge(void *node, void *oldEdgeList, void *newEdge, void *newEdgeList) {
-	// START HERE!
-	// WE NEED TO ADD NEWEDGE TO OLDEDGELIST AND SET IT TO NEWEDGELIST.
+void addEdge(void *node, void *oldEdgeList, void *passed, void *newEdgeList) {
+		AddEdgePassed *arg = (AddEdgePassed *)passed;
+		// ADD NEWEDGE TO OLDEDGELIST AND SET IT TO NEWEDGELIST.
 	// HOW DO WE MAKE SURE TO NOT ADD TOO MANY NODES!!!!
 	// ALSO, HOW DO WE KNOW HOW MANY NODES ARE IN OLDEDGELIST?
-	uint64 edges[] = oldEdgeList;
+
+	memcpy(newEdgeList, oldEdgeList, sizeof(uint64)*(arg->maxEdges+1));
+	uint64 *edges = newEdgeList;
 	uint64 size = edges[0];
 	uint64 insertIndex = size + 1;
-	edges[insertIndex] = *(uint64 *)newEdge;
-	newEdgeList = edges;
+	uint64 newSize = size + 1;
+	edges[0] = newSize;
+	printf("Adding edge %lli -> %lli at index %lli\n", *(uint64 *)node, arg->newEdge, insertIndex);
+	edges[insertIndex] = arg->newEdge;
+	printf("%lli has %lli edges, last edge %lli\n", *(uint64 *)node, newSize, edges[insertIndex]);
+//	printNodeAndChildren(node, newEdgeList);
 }
 void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to) {
-	RoomyHashTable_update(g->graph, from, to, addEdge);
+	AddEdgePassed arg;
+	arg.newEdge = *to;
+	arg.maxEdges = g->maxEdges;
+	RoomyHashTable_update(g->graph, from, &arg, addEdge);
 }
 int RoomyGraph_containsEdge(RoomyGraph *g, uint64* from, uint64* to) {
 	return 0;
@@ -77,13 +98,13 @@ RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges,
   RoomyGraph* g = (RoomyGraph *)malloc(sizeof(RoomyGraph));
 
   uint64 keySize = sizeof(uint64);
-  uint64 valueSize = maxEdges*keySize;
+  uint64 valueSize = (maxEdges + 1)*keySize;
 
   g->graph = RoomyHashTable_make(name, keySize, valueSize, initialCapacity);
   g->maxEdges = maxEdges;
 
 	// We must also attach the functions used for searching
-	RoomyHashTable_registerUpdateFunc(g->graph, addEdge, keySize);
+	RoomyHashTable_registerUpdateFunc(g->graph, addEdge, sizeof(AddEdgePassed));
 
   return g;
 }
