@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
 	Roomy_finalize();
 }
 int addEdgeTest() {
-	RoomyGraph *g = RoomyGraph_make("addEdgeTest", sizeof(uint64), 2, 2);
+	RoomyGraph *g = RoomyGraph_make("addEdgeTest", 2, 2);
 	uint64 from = 2;
 	uint64 to = 4;
 	RoomyGraph_addNode(g, &from);
@@ -41,7 +41,7 @@ int addEdgeTest() {
 	return PASSED;
 }
 int addingSameNodeDoesntIncreaseCount() {
-	RoomyGraph *g = RoomyGraph_make("multiAdds", sizeof(uint64), 2, 2);
+	RoomyGraph *g = RoomyGraph_make("multiAdds", 2, 2);
 	uint64 node = 653;
 	RoomyGraph_addNode(g, &node);
 	RoomyGraph_sync(g);
@@ -62,7 +62,7 @@ int addingSameNodeDoesntIncreaseCount() {
 	return PASSED;
 }
 int ableToAddMoreThanInitialSize() {
-	RoomyGraph *g = RoomyGraph_make("increaseCapacity", sizeof(uint64), 2, 2);
+	RoomyGraph *g = RoomyGraph_make("increaseCapacity", 2, 2);
 	uint64 count = 0;
 	while(count < 4) {
 		count++;
@@ -81,11 +81,10 @@ int ableToAddMoreThanInitialSize() {
 int createGraph() {
   uint64 maxEdges = 10;
   uint64 initialCapacity = 10;
-	RoomyGraph *g = RoomyGraph_make("g", sizeof(uint64), maxEdges, initialCapacity);
+	RoomyGraph *g = RoomyGraph_make("g", maxEdges, initialCapacity);
 
   assert(NULL != g);
   assert(g->maxEdges == 10);
-	assert(g->bytesPerElt == sizeof(uint64));
   assert(NULL != g->graph);
 
 	printf("createGraph completed successfully.\n");
@@ -93,7 +92,7 @@ int createGraph() {
   return PASSED;
 }
 int destroyGraph() {
-	RoomyGraph *g = RoomyGraph_make("destroy", sizeof(uint64), 1, 1);
+	RoomyGraph *g = RoomyGraph_make("destroy", 1, 1);
 	assert(NULL != g);
 	RoomyGraph_destroy(g);
 	printf("destroyGraph completed successfully.\n");
@@ -101,7 +100,7 @@ int destroyGraph() {
 }
 int addNode() {
 	// Create a very simple RG so we can add a single node to it.
-	RoomyGraph *g = RoomyGraph_make("addNode", sizeof(uint64), 2, 2);
+	RoomyGraph *g = RoomyGraph_make("addNode", 2, 2);
 	uint64 node = 3;
 	RoomyGraph_addNode(g, &node);
 	RoomyGraph_sync(g);
@@ -111,7 +110,7 @@ int addNode() {
 	return PASSED;
 }
 int containsNodeTest() {
-	RoomyGraph *g = RoomyGraph_make("containsNodeTest", sizeof(uint64), 2, 2);
+	RoomyGraph *g = RoomyGraph_make("containsNodeTest", 2, 2);
 	uint64 node = 3;
 	RoomyGraph_addNode(g, &node);
 	RoomyGraph_sync(g);
@@ -123,7 +122,7 @@ int containsNodeTest() {
 	return PASSED;
 }
 int addMultipleNodes() {
-	RoomyGraph *g = RoomyGraph_make("multiNode", sizeof(uint64), 2, 4);
+	RoomyGraph *g = RoomyGraph_make("multiNode", 2, 4);
 	uint64 first = 1;
 	uint64 second = 2;
 	RoomyGraph_addNode(g, &first);

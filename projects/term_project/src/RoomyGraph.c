@@ -10,8 +10,10 @@ void RoomyGraph_destroy(RoomyGraph *g) {
 	RoomyHashTable_destroy(g->graph);
 	free(g);
 }
-void RoomyGraph_addNode(RoomyGraph *g, void* node) {
-	void *EMPTY = calloc(g->maxEdges, g->bytesPerElt);
+void RoomyGraph_addNode(RoomyGraph *g, uint64* node) {
+	// We are adding 1 because that is what stores the stored
+	// number of edges.
+	void *EMPTY = calloc(1 + g->maxEdges, sizeof(uint64));
 	RoomyHashTable_insert(g->graph, node, EMPTY);
 }
 void RoomyGraph_sync(RoomyGraph *g) {
@@ -20,13 +22,14 @@ void RoomyGraph_sync(RoomyGraph *g) {
 // Private members and functions for containsNode
 uint64 count; // if you are going to use this, don't forget to initialize it!
 uint64 searchNode;
+// We don't care about the val (which is the edgelist, BTW)
 void countMatches(void* key, void* val) {
 	uint64 node = *(uint64 *)key;
 	if(node == searchNode) { count++; }
 }
 // End private members
-int RoomyGraph_containsNode(RoomyGraph *g, void* node) {
-	searchNode = *(uint64 *)node;
+int RoomyGraph_containsNode(RoomyGraph *g, uint64* node) {
+	searchNode = *node;
 	count = 0;
 	RoomyHashTable_map(g->graph, countMatches);
 	RoomyGraph_sync(g);
@@ -51,29 +54,33 @@ void RoomyGraph_print(RoomyGraph *g) {
 	RoomyHashTable_map(g->graph, printNodeAndChildren);
 	RoomyGraph_sync(g);
 }
+// Private function that adds the newEdge to the nodes edgeList
 void addEdge(void *node, void *oldEdgeList, void *newEdge, void *newEdgeList) {
+	int i = 0;
+	// START HERE!
+	// WE NEED TO ADD NEWEDGE TO OLDEDGELIST AND SET IT TO NEWEDGELIST.
+	// HOW DO WE MAKE SURE TO NOT ADD TOO MANY NODES!!!!
+	// ALSO, HOW DO WE KNOW HOW MANY NODES ARE IN OLDEDGELIST?
 	newEdgeList = oldEdgeList;
 }
-void RoomyGraph_addEdge(RoomyGraph *g, void* from, void* to) {
+void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to) {
 	RoomyHashTable_update(g->graph, from, to, addEdge);
 }
-int RoomyGraph_containsEdge(RoomyGraph *g, void* from, void* to) {
+int RoomyGraph_containsEdge(RoomyGraph *g, uint64* from, uint64* to) {
 	return 0;
 }
-RoomyGraph* RoomyGraph_make(char* name, uint64 bytesPerElt, uint64 maxEdges, 
+RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, 
                                  uint64 initialCapacity) {
   RoomyGraph* g = (RoomyGraph *)malloc(sizeof(RoomyGraph));
 
-  uint64 keySize = bytesPerElt;
-  uint64 valueSize = maxEdges*bytesPerElt;
+  uint64 keySize = sizeof(uint64);
+  uint64 valueSize = maxEdges*keySize;
 
   g->graph = RoomyHashTable_make(name, keySize, valueSize, initialCapacity);
   g->maxEdges = maxEdges;
-	g->bytesPerElt = bytesPerElt;
 
 	// We must also attach the functions used for searching
 	RoomyHashTable_registerUpdateFunc(g->graph, addEdge, keySize);
 
   return g;
 }
-
