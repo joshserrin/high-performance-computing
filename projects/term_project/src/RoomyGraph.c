@@ -56,12 +56,15 @@ void RoomyGraph_print(RoomyGraph *g) {
 }
 // Private function that adds the newEdge to the nodes edgeList
 void addEdge(void *node, void *oldEdgeList, void *newEdge, void *newEdgeList) {
-	int i = 0;
 	// START HERE!
 	// WE NEED TO ADD NEWEDGE TO OLDEDGELIST AND SET IT TO NEWEDGELIST.
 	// HOW DO WE MAKE SURE TO NOT ADD TOO MANY NODES!!!!
 	// ALSO, HOW DO WE KNOW HOW MANY NODES ARE IN OLDEDGELIST?
-	newEdgeList = oldEdgeList;
+	uint64 edges[] = oldEdgeList;
+	uint64 size = edges[0];
+	uint64 insertIndex = size + 1;
+	edges[insertIndex] = *(uint64 *)newEdge;
+	newEdgeList = edges;
 }
 void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to) {
 	RoomyHashTable_update(g->graph, from, to, addEdge);
