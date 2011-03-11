@@ -41,7 +41,7 @@ void RoomyGraph_destroy(RoomyGraph *g);
 /* Adds the node to the RoomyGraph (RG).  
 	 NOTE: This is a delayed operation therefore you must call RoomyGraph_sync before 
    the node is ensured to be added to the RG */
-void RoomyGraph_addNode(RoomyGraph *g, uint64* node);
+void RoomyGraph_addNode(RoomyGraph *g, uint64 node);
 
 /* Completes all delayed operations */
 void RoomyGraph_sync(RoomyGraph *g);
@@ -50,7 +50,7 @@ void RoomyGraph_sync(RoomyGraph *g);
    if no node can be found.
 	 NOTE: It is recommended to ensure that the RoomyGraph has been sync'd before
 	   calling this function. */
-int RoomyGraph_containsNode(RoomyGraph *g, uint64* node);
+int RoomyGraph_containsNode(RoomyGraph *g, uint64 node);
 
 /* Prints the contents of the RoomyGraph to the console */
 void RoomyGraph_print(RoomyGraph *g);
@@ -62,7 +62,7 @@ int RoomyGraph_nodeCount(RoomyGraph *g);
    assumed that the nodes have already been added.  There is no check to 
 	 ensure this, though. 
 	 NOTE: this is a delayed operation */
-void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to);
+void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to);
 
 /* Returns 1 if an edge originating at from and terminating at to is contained
 		within the RoomyGraph */

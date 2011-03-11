@@ -10,11 +10,11 @@ void RoomyGraph_destroy(RoomyGraph *g) {
 	RoomyHashTable_destroy(g->graph);
 	free(g);
 }
-void RoomyGraph_addNode(RoomyGraph *g, uint64* node) {
+void RoomyGraph_addNode(RoomyGraph *g, uint64 node) {
 	// We are adding 1 because that is what stores the stored
 	// number of edges.
 	void *EMPTY = calloc((1 + g->maxEdges), sizeof(uint64));
-	RoomyHashTable_insert(g->graph, node, EMPTY);
+	RoomyHashTable_insert(g->graph, &node, EMPTY);
 }
 void RoomyGraph_sync(RoomyGraph *g) {
 	RoomyHashTable_sync(g->graph);
@@ -28,8 +28,8 @@ void countMatches(void* key, void* val) {
 	if(node == searchNode) { count++; }
 }
 // End private members
-int RoomyGraph_containsNode(RoomyGraph *g, uint64* node) {
-	searchNode = *node;
+int RoomyGraph_containsNode(RoomyGraph *g, uint64 node) {
+	searchNode = node;
 	count = 0;
 	RoomyHashTable_map(g->graph, countMatches);
 	RoomyGraph_sync(g);
@@ -60,10 +60,7 @@ int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	else return 0;
 }
 // Private functions for nodeCount
-void increaseCount(void *k, void *v) {
-	count++;
-}
-// end private function
+void increaseCount(void *k, void *v) { count++; }
 int RoomyGraph_nodeCount(RoomyGraph *g) {
 	count = 0;
 	RoomyHashTable_map(g->graph, increaseCount);
@@ -101,11 +98,11 @@ void addEdge(void *node, void *oldEdgeList, void *passed, void *newEdgeList) {
 	edges[0] = newSize;
 	edges[insertIndex] = arg->newEdge;
 }
-void RoomyGraph_addEdge(RoomyGraph *g, uint64* from, uint64* to) {
+void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	AddEdgePassed arg;
-	arg.newEdge = *to;
+	arg.newEdge = to;
 	arg.maxEdges = g->maxEdges;
-	RoomyHashTable_update(g->graph, from, &arg, addEdge);
+	RoomyHashTable_update(g->graph, &from, &arg, addEdge);
 }
 RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, 
                                  uint64 initialCapacity) {
