@@ -6,6 +6,17 @@
 // ===================================================
 // If documentation is lacking, please check RoomyGraph.h
 // ===================================================
+
+// Use this function to traverse over all edges and execute a 
+// function on each child
+void forEachChild(uint64 parent, uint64 *edges, 
+	void (*f)(uint64 parent, uint64 child)) {
+	uint64 size = edges[0];
+	uint64 i;
+	for(i = 0; i < size; i++) {
+		f(parent, edges[i + 1]);
+	}
+}
 void RoomyGraph_destroy(RoomyGraph *g) {
 	RoomyHashTable_destroy(g->graph);
 	free(g);
@@ -38,16 +49,16 @@ int RoomyGraph_containsNode(RoomyGraph *g, uint64 node) {
 }
 uint64 glo_from;
 uint64 glo_to;
+void increaseCountByMatchingEdges(uint64 parent, uint64 child) {
+	if(child == glo_to) { count++; }
+}
+// Increases count if key is glo_from by the number of its edges
+// equal to glo_to
 void countEdges(void *key, void *value) {
 	uint64 from = *(uint64 *)key;
 	if(from == glo_from) {
 		uint64 *edges = (uint64 *)value;
-		uint64 size = edges[0];
-		uint64 i;
-		for(i = 0; i < size; i++) {
-			uint64 e = edges[i + 1];
-			if(e == glo_to) {	count++; }
-		}
+		forEachChild(from, edges, increaseCountByMatchingEdges);
 	} 
 }
 int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
@@ -67,15 +78,14 @@ int RoomyGraph_nodeCount(RoomyGraph *g) {
 	RoomyGraph_sync(g);
 	return count;
 }
+void printEdge(uint64 parent, uint64 child) {
+	printf("%lli,", child);
+}
 void printNodeAndChildren(void *k, void *v) {
+	uint64 parent = *(uint64 *)k;
 	uint64 *edges = (uint64 *)v;
-	uint64 size = edges[0];
-	uint64 i;
-	printf("%lli -> [", *(uint64 *)k);
-	for(i = 0; i < size; i++) {
-		uint64 edge = edges[i + 1];
-		printf("%lli, ", edge);
-	}
+	printf("%lli -> [", parent);
+	forEachChild(parent, edges, printEdge);
 	printf("]\n");
 }
 void RoomyGraph_print(RoomyGraph *g) {

@@ -33,7 +33,9 @@ int addEdgeTest() {
 	RoomyGraph_addNode(g, to);
 	RoomyGraph_addEdge(g, from, to);
 	RoomyGraph_sync(g);
-	
+
+//	RoomyGraph_print(g);
+
 	assert(TRUE == RoomyGraph_containsEdge(g, from, to));
 	assert(FALSE == RoomyGraph_containsEdge(g, to, from));
 
