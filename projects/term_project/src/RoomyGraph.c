@@ -72,7 +72,7 @@ int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
 }
 // Private functions for nodeCount
 void increaseCount(void *k, void *v) { count++; }
-int RoomyGraph_nodeCount(RoomyGraph *g) {
+uint64 RoomyGraph_nodeCount(RoomyGraph *g) {
 	count = 0;
 	RoomyHashTable_map(g->graph, increaseCount);
 	RoomyGraph_sync(g);
@@ -114,6 +114,27 @@ void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	arg.maxEdges = g->maxEdges;
 	RoomyHashTable_update(g->graph, &from, &arg, addEdge);
 }
+//Children *children;
+void createChildren(void *key, void *value, void *passedVal) {
+	//printf("here1\n");
+	uint64 *c = value;
+	uint64 num = c[0];
+	//printf("here1a: %p\n", children);
+	//printf("here2: %d\n", num);
+	//children->count = num;
+	//printf("here3\n");
+	//memcpy(children->child, c, num*sizeof(uint64));
+}
+Children* RoomyGraph_getChildren(RoomyGraph *g, uint64 parent) {
+	//children = NULL;
+	//printf("Getting children of %lli\n", parent);
+	RoomyHashTable_access(g->graph, &parent, &g->maxEdges, createChildren);
+	//printf("access called");
+	RoomyGraph_sync(g);
+	//printf("Got children of %lli\n", parent);
+	//return children;
+	return NULL;
+}
 RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, 
                                  uint64 initialCapacity) {
   RoomyGraph* g = (RoomyGraph *)malloc(sizeof(RoomyGraph));
@@ -126,6 +147,8 @@ RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges,
 
 	// We must also attach the functions used for searching
 	RoomyHashTable_registerUpdateFunc(g->graph, addEdge, sizeof(AddEdgePassed));
+	RoomyHashTable_registerAccessFunc(g->graph, createChildren, sizeof(uint64));
 
   return g;
 }
+

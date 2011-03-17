@@ -17,13 +17,44 @@ int main(int argc, char ** argv) {
 		 addMultipleNodes() &&
 		 ableToAddMoreThanInitialSize() &&
 		 addingSameNodeDoesntIncreaseCount() &&
-		 addEdgeTest()) {
+		 addEdgeTest())
+		//&& getChildren())
+		{
     printf("All tests passed\n");
   } else {
     printf("ERROR OCCURRED... SEE LOGS\n");
   }
 	
 	Roomy_finalize();
+}
+int getChildren() {
+	RoomyGraph *g = RoomyGraph_make("getChildren", 4, 4);
+	RoomyGraph_addNode(g, 1);
+	RoomyGraph_addNode(g, 2);
+	RoomyGraph_addNode(g, 3);
+	RoomyGraph_addNode(g, 4);
+	RoomyGraph_addEdge(g, 1, 2);
+	RoomyGraph_addEdge(g, 1, 3);
+	RoomyGraph_addEdge(g, 2, 4);
+	RoomyGraph_sync(g);
+
+	printf("graph created\n");
+
+	Children *children = RoomyGraph_getChildren(g, 1);
+	assert(children->count == 2);
+	assert(children->child[0] == 2);
+	assert(children->child[1] == 3);
+
+	children = RoomyGraph_getChildren(g, 2);
+	assert(children->count == 1);
+	assert(children->child[0] == 4);
+
+	children = RoomyGraph_getChildren(g, 3);
+	assert(children->count == 0);
+
+	RoomyGraph_destroy(g);
+	printf("getChildren completed successfully.\n");
+	return PASSED;
 }
 int addEdgeTest() {
 	RoomyGraph *g = RoomyGraph_make("addEdgeTest", 2, 2);

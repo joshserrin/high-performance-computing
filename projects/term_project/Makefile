@@ -18,11 +18,15 @@ TESTS=$(patsubst %, $(SRC)/%, $(_TESTS))
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-compile_roomy_graph: $(OBJ)
+compile: $(OBJ)
 
-tests: compile_roomy_graph $(TESTS) 
+tests: compile $(TESTS) 
 	$(CC) -o RoomyGraphTest $(OBJ) $(TESTS) $(CFLAGS)
-	
+
+simple-example: compile src/SimpleExample.c
+	$(CC) -o SimpleExample $(OBJ) src/SimpleExample.c $(CFLAGS)
+
+refresh: clean tests simple-example
 
 clean:
 	rm -f $(SRC)/*.o

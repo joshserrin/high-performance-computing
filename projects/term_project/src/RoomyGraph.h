@@ -56,7 +56,7 @@ int RoomyGraph_containsNode(RoomyGraph *g, uint64 node);
 void RoomyGraph_print(RoomyGraph *g);
 
 /* Returns the number of nodes in the RoomyGraph */
-int RoomyGraph_nodeCount(RoomyGraph *g);
+uint64 RoomyGraph_nodeCount(RoomyGraph *g);
 
 /* Adds an directed edge originating at from and terminating at to.  It is
    assumed that the nodes have already been added.  There is no check to 
@@ -67,3 +67,8 @@ void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to);
 /* Returns 1 if an edge originating at from and terminating at to is contained
 		within the RoomyGraph */
 int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to);
+typedef struct {
+	uint64 count;
+	uint64 *child;
+} Children;
+Children* RoomyGraph_getChildren(RoomyGraph *g, uint64 parent);

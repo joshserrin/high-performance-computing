@@ -1,3 +1,4 @@
+{toc}
 {note}
 *General Overview of the Contents of this Page*
 This page should follow the layout and discussion of a research paper.  It functions less as a general wiki paper and more of a public location for the Professor, TAs and students to understand what the team has presently done.  At the end of this semster (Spring 2011) this will contain the paper in final form.
@@ -28,25 +29,147 @@ Given the above problem, we will implement a new data structure called RoomyGrap
 h1. RoomyGraph
 A RoomyGraph is a *directed graph* containing nodes and edges.  Its underlying representation is a RoomyHashTable (RHS) where a node is a key and a list of nodes is the value associated with that key.  A single edge is represented as a key (node) of the RHS and element of the value (list of nodes).  The edge's direction originates from the key such that if the key is 'A' and an element of the value (list of nodes) is 'B', then A->B.
 
+Nodes in RoomyGraph are uint64s.  This is done to reduce the amount of redundant data if node types where of a user defined size.  Our first implementation allowed the user to define how large (e.g., the number of bytes) that a node occupies.  For sparse graphs, this might not be an issue but for highly connected graphs the total size that a RoomyGraph can occupy will grow greatly.  Say, for instance, that a node occupies 1 byte and that the following graph is stored represented.
+
+!triangle-graph.png!
+
+The RoomyGraph data structure will look like follows:
+A -> \[B,C\]
+B -> \[A,C\]
+C -> \[A,B\]
+
+Therefore, given the three nodes of 1 byte we must store (at a minimum) 9 bytes: 1 byte for each node plus two additional bytes for its children.  Mathematically speaking, a complete graph will occupy
+
+(n + n(n-1)/2)*bytesPerElt
+
+where n = number of nodes
+			bytesPerElt = number of bytes each node occupies
+
 h2. Application Programming Interface (API)
 The following methods is the public API for constructing and using a RoomyGraph.  It is recommended to use these, and only these functions, when using a RoomyGraph.
 
 h3. Making a RoomyGraph
 Constructs a RoomyGraph with the following parameters:
-- name: the name of the RoomyGraph
-- bytesPerelt: The number of types that a node will occupy.  For instance, if your nodes are 64-bit integers, you could use _sizeof(uint64)_
-- maxEdges: The maximum number of edges that can originate from a node.
-- initialCapacity: A requirement of the RoomyHashTable that has been exposed to users of RoomyGraph.  This allows the programmer to provide the initial number of entries that the RoomyGraph will contain.  If the number of entries inserted exceeds the RHS's current capacity, the capacity is increased.  Because this processes of expansion can negatively impact performance, it is best to provide an accurate capacity during construction.
+*name*: the name of the RoomyGraph
+*maxEdges*: The maximum number of edges that can originate from a node.
+*initialCapacity*: A requirement of the RoomyHashTable that has been exposed to users of RoomyGraph.  This allows the programmer to provide the initial number of entries that the RoomyGraph will contain.  If the number of entries inserted exceeds the RHS's current capacity, the capacity is increased.  Because this processes of expansion can negatively impact performance, it is best to provide an accurate capacity during construction.
 {code}
-RoomyGraph* RoomyGraph_makeBytes(char* name, uint64 bytesPerElt, uint64 maxEdges, uint64 initialCapacity);
+RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, uint64 initialCapacity);
+{code}
+
+h3. Destroying a RoomyGraph
+Destroys the RoomyGraph *g* and deletes all files associated with it.
+{code}
+void RoomyGraph_destroy(RoomyGraph *g);
 {code}
 
 h3. Adding a Node
+Adds a node to the provided RoomyGraph, where
+*g*: is a pointer to the RoomyGraph
+*node*: is the node being added to the RoomyGraph
+{code}
+void RoomyGraph_addNode(RoomyGraph *g, uint64 node);
+{code}
+
+h3. Node Count
+Returns the number of Nodes currently added to the RoomyGraph *g*.
+{code}
+int RoomyGraph_nodeCount(RoomyGraph *g);
+{code}
+
+h3. Query for existence of Node
+Queries the RoomyGraph *g* for the existence of the provided node *node* and produces 0 if the node is not currently in the graph or 1 if it is.
+{code}
+int RoomyGraph_containsNode(RoomyGraph *g, uint64 node);
+{code}
+
 h3. Adding an Edge between Nodes
+Adds a directed edge between two existing nodes where
+*g*: a pointer to the RoomyGraph
+*from*: the originating location of the edge
+*to*: the destination of the edge
+{code}
+void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to);
+{code}
+
+h3. Query existence of Edge
+Queries the RoomyGraph *g* for the existence of an edge originating at *from* and terminating at *to* and produces 0 if there is an edge originating from _from_ and termating at _to_.
+{code}
+int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to)
+{code}
+
+h3. Synchronizing
+Performs all delays operations on the RoomyGraph *g* that have been enqueued.
+{code}
+void RoomyGraph_sync(RoomyGrah *g);
+{code}
+
 h2. Current Limitations
-- Due to the inability to have a dynamic value sized in RoomyHashTable, you currently need to specify the maximum number of edges that originate from any given node.  In some situations this is highly acceptable and could model the domain precisely.  For instance, given the rubic cube problem, there is a finite and consistent number of moves that can be taken given the current cube configuration.  Twelve to be exact (* needs to be confirmed).  So, in this case, your node type is an object representing the current configuration of the rubic cube, and it has 12 edges representing the next configuration from each possible move.
+h3. Lack of dynamically-sized children
+Due to the inability to have a dynamic value sizes in RoomyHashTable, you currently need to specify the maximum number of edges that originate from any given node.  This maximum is a global max and therefore each node's children list will occupy a constant space regardless of the actual number of children.  In some situations this is highly acceptable and could model the domain precisely.  For instance, given the rubic cube problem, there is a finite and consistent number of moves that can be taken given the current cube configuration.  Twelve to be exact (* needs to be confirmed).  So, in this case, your node type is an object representing the current configuration of the rubic cube, and it has 12 edges representing the next configuration from each possible move.i
 
 h2. Usage Examples
+The follow code snippet illustrates the ease of generating a RoomyGraph.  All code examples can be downloaded from [https://github.com/joshserrin/high-performance-computing].
+
+{code}
+#include <stdio.h>
+#include "RoomyGraph.h"
+
+/*
+Creates and prints the graph seen in diagrams/simple-graph.png.
+*/
+void createSimpleGraph() {
+	uint64 one = 1;
+	uint64 two = 2;
+	uint64 three = 3;
+	uint64 four = 4;
+	uint64 five = 5;
+
+	// From our sample graph we know that 1 has the most children (3) so 
+	// maxEdges MUST be at least that number.
+	uint64 maxEdges = 3;
+	// We also know that there are 5 nodes.
+	uint64 initialCapacity = 5;
+	RoomyGraph *g = RoomyGraph_make("simple-graph", maxEdges, initialCapacity);
+
+	// Add all the nodes
+	RoomyGraph_addNode(g, one);
+	RoomyGraph_addNode(g, two);
+	RoomyGraph_addNode(g, three);
+	RoomyGraph_addNode(g, four);
+	RoomyGraph_addNode(g, five);
+
+	// Now, add all the edges
+	RoomyGraph_addEdge(g, one, two);
+	RoomyGraph_addEdge(g, one, three);
+	RoomyGraph_addEdge(g, one, five);
+	RoomyGraph_addEdge(g, three, one);
+	RoomyGraph_addEdge(g, five, five);
+	
+	RoomyGraph_sync(g);
+	uint64 nodeCount = RoomyGraph_nodeCount(g);
+	printf("There are %lli nodes.\n", nodeCount);
+	RoomyGraph_print(g);
+	
+	RoomyGraph_destroy(g);
+}
+int main(int argc, char **argv) {
+	Roomy_init(&argc, &argv);
+
+	createSimpleGraph();
+
+	Roomy_finalize();
+}
+{code}
+And the output of running the application is...
+{code}
+There are 5 nodes.
+3 -> [1,]
+2 -> []
+4 -> []
+5 -> [5,]
+1 -> [2,3,5,]
+{code}
 
 h1. Algorithms
 {note}
@@ -60,13 +183,22 @@ Possible generalized algorithms to include
 - Single-source Shortest Path [http://en.wikipedia.org/wiki/Shortest_path_problem]
 {note}
 
+h1. Clique Proglem
+- http://en.wikipedia.org/wiki/Clique_problem
+- A social network dataset was found at [http://snap.stanford.edu/data/#socnets].  This will be the dataset used in our large-scale clique finding example.  Currently, two different datasets are of interest:
+-- soc-Epinions1: contains over 500K edges
+-- soc-LiveJournal1: contains over 6.8M edges
+Each file contains (from,to) node pairs representing an edge
+
 h1. Testing
 {note}
 Discuss the testing plan to provide what was implemented actually works
 {note}
 
 h2. Sanity Check
-- small test, possiblity with made up, fixed maze. Manhattan distance [http://en.wikipedia.org/wiki/Manhattan_distance]
+- small test, possiblity with made up, fixed maze. 
+- For A*, Manhattan distance [http://en.wikipedia.org/wiki/Manhattan_distance]
+- For Clique-Finding, possibly a sample problem in _Social Network Analysis_ or Wikipedia.  If none are small enough for hardcoding, consider using Wiki-Vote from [http://snap.stanford.edu/data/wiki-Vote.html]
 
 h2. Large-scale Testbed
 - I need to discuss with the Prof. what problems he would recommend.  During 2/3 lecture, he said that he has contact with a UNH professor that has some background and could possibly provide a good test application
@@ -74,6 +206,8 @@ h2. Large-scale Testbed
 h1. Future Work
 - dynamic edge counts
 - undirected graph
+- Nodes of user-defined types.  RoomyGraph's HashTable could store uint64s were uint64 ids are constructed as nodes and objects are added.  Therefore, RoomyGraph could contain two RoomyHashTables were one is the mapping of nodes to their children and the other is the mapping of ids to nodes.
+- WeightedRoomyGraph
 
 h1. Conclusion
 
@@ -81,6 +215,7 @@ h1. References
 \[1\] *Parallel Astar Search on Message-Passing Architectures* by Z. Cvetanovic and C. Nofsinger, Digital Equipment Corporation, IEEE 1990.
 \[2\] *Roomy: A System for Space Limited Computations* by Daniel Kunkle, Northeastern University, ACM 2010.
 \[3\] [http://en.wikipedia.org/wiki/Graph_theory].
+\[4\] *Social Network Analysis: Methods and Applications* by Stanley Wasserman and Katherine Faust, Cambridge University Press, 1994.
 
 h1. Appendix
 h2. Troubleshooting
