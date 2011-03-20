@@ -197,16 +197,26 @@ Terminology:
 - indegree: the number of edges directed to the node \[5\].
 - outdegree: the number of edges directed from the node \[5\].
 - digraph: directional graph \[5\].
+- Xi+: The number of outdegree edges from a node
+- X+i: The number of indegree edges to a node
 
 The following sections discuss different algorithms (mainly discussed in Social Network literature \[4\]).  Identical concepts are sometimes calculated differently depending on the type of graph.  For instance, Degree Centrality of a node in a undirected graph is computed as the total number of edges connected to the node.  Whereas, Degree Centrality of a node in a directed graph is the total number of outdegree edges.  It is important to note that RoomyGraph (at its current state) is a _directed graph_ and therefore concepts further discussed are for directed graphs.  If undirected graph calculations are required, we recommend that you refer to the literature.
 
 h2. Degree Centrality
-Centrality is a measurement on a single node regarding how closely it is related to other nodes in a digraph\[4\].  It is defined as:
-C_d(n_i) =  = Xi+ / (g-1)
+Centrality is a measurement on a single node regarding how closely it directly relates to other nodes (outdegree count) in a digraph \[4\].  It is defined as:
+C_d(n_i) = Xi+ / (g-1)
 where
-n_i is the node
-Xi+ is the number of outdegree edges
-g is the number of nodes in the graph
+n_i: the node
+Xi+: the number of outdegree edges
+g: the number of nodes in the graph
+
+h2. Degree Prestige
+Prestige is a measurement on a single node regarding how closely other nodes are related to it (indegree count).  It is defined as:
+P_d(n_i) = X+i / (g-1)
+where
+n_i: the node
+X+i: the number of indegree edges
+g: the number of nodes in the graph
 
 h2. Clique Proglem
 - http://en.wikipedia.org/wiki/Clique_problem
