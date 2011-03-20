@@ -27,48 +27,26 @@ typedef struct {
 
 } RoomyGraph;
 
-/*
-Constructs a RoomyGraph where each Node consists of bytesPerElt bytes
-with a maximum outgoing edge count of maxEdges.
-*/
+// For documentation, see RoomyGraph.c
+// =================== Basic RoomyGraph Functions ==============================
 RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, uint64 initialCapacity);
-
-/*
- Destroys the RoomyGraph and frees up memory allocated for g. 
- */
 void RoomyGraph_destroy(RoomyGraph *g);
-
-/* Adds the node to the RoomyGraph (RG).  
-	 NOTE: This is a delayed operation therefore you must call RoomyGraph_sync before 
-   the node is ensured to be added to the RG */
 void RoomyGraph_addNode(RoomyGraph *g, uint64 node);
-
-/* Completes all delayed operations */
 void RoomyGraph_sync(RoomyGraph *g);
-
-/* Returns 1 if the RoomyGraph contains a node equal to the provided node, or 0
-   if no node can be found.
-	 NOTE: It is recommended to ensure that the RoomyGraph has been sync'd before
-	   calling this function. */
 int RoomyGraph_containsNode(RoomyGraph *g, uint64 node);
-
-/* Prints the contents of the RoomyGraph to the console */
 void RoomyGraph_print(RoomyGraph *g);
-
-/* Returns the number of nodes in the RoomyGraph */
 uint64 RoomyGraph_nodeCount(RoomyGraph *g);
-
-/* Adds an directed edge originating at from and terminating at to.  It is
-   assumed that the nodes have already been added.  There is no check to 
-	 ensure this, though. 
-	 NOTE: this is a delayed operation */
 void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to);
-
-/* Returns 1 if an edge originating at from and terminating at to is contained
-		within the RoomyGraph */
 int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to);
+// Currently not working... do not use!
 typedef struct {
 	uint64 count;
 	uint64 *child;
 } Children;
 Children* RoomyGraph_getChildren(RoomyGraph *g, uint64 parent);
+
+// ======================= Graph Algorithms ======================================
+uint64 RoomyGraphAlg_degreeCentrality(RoomyGraph *g, uint64 node);
+double RoomyGraphAlg_degreeCentralityStandardized(RoomyGraph *g, uint64 node);
+uint64 RoomyGraphAlg_degreePrestige(RoomyGraph *g, uint64 node);
+double RoomyGraphAlg_degreePrestigeStandardized(RoomyGraph *g, uint64 node);

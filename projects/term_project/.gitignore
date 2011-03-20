@@ -1,5 +1,6 @@
 src/*.o
 RoomyGraphTest
 SimpleExample
+GraphAlgorithmTest
 *.swp
 **/*.swp

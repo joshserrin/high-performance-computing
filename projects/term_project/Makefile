@@ -20,14 +20,19 @@ TESTS=$(patsubst %, $(SRC)/%, $(_TESTS))
 
 compile: $(OBJ)
 
-tests: compile $(TESTS) 
+tests: compile $(TESTS)
 	$(CC) -o RoomyGraphTest $(OBJ) $(TESTS) $(CFLAGS)
 
-simple-example: compile src/SimpleExample.c
+algs: compile src/GraphAlgorithmTest.c
+	$(CC) -o GraphAlgorithmTest $(OBJ) src/GraphAlgorithmTest.c $(CFLAGS)
+
+examples: compile src/SimpleExample.c
 	$(CC) -o SimpleExample $(OBJ) src/SimpleExample.c $(CFLAGS)
 
-refresh: clean tests simple-example
+refresh: clean tests examples algs
 
 clean:
 	rm -f $(SRC)/*.o
 	rm -f RoomyGraphTest
+	rm -f SimpleExample
+	rm -f GraphAlgorithmTest

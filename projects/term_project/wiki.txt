@@ -1,3 +1,9 @@
+{note}
+The interim reports can be found here 
+ [RoomyGraph|^CS5650-jserrin-jli-interim_report.pdf]
+ [^Roomy-Astar.pdf]
+{note}
+
 {toc}
 {note}
 *General Overview of the Contents of this Page*
@@ -172,6 +178,9 @@ There are 5 nodes.
 {code}
 
 h1. Algorithms
+
+[^Roomy-Astar.pdf]
+
 {note}
 Provide an overview (very brief) of the algorithms that have been implemented.  Show their API and give small code snippets of how they were used.
 Main areas of focus
@@ -183,7 +192,23 @@ Possible generalized algorithms to include
 - Single-source Shortest Path [http://en.wikipedia.org/wiki/Shortest_path_problem]
 {note}
 
-h1. Clique Proglem
+h1. Graphing Algorithms
+Terminology:
+- indegree: the number of edges directed to the node \[5\].
+- outdegree: the number of edges directed from the node \[5\].
+- digraph: directional graph \[5\].
+
+The following sections discuss different algorithms (mainly discussed in Social Network literature \[4\]).  Identical concepts are sometimes calculated differently depending on the type of graph.  For instance, Degree Centrality of a node in a undirected graph is computed as the total number of edges connected to the node.  Whereas, Degree Centrality of a node in a directed graph is the total number of outdegree edges.  It is important to note that RoomyGraph (at its current state) is a _directed graph_ and therefore concepts further discussed are for directed graphs.  If undirected graph calculations are required, we recommend that you refer to the literature.
+
+h2. Degree Centrality
+Centrality is a measurement on a single node regarding how closely it is related to other nodes in a digraph\[4\].  It is defined as:
+C_d(n_i) =  = Xi+ / (g-1)
+where
+n_i is the node
+Xi+ is the number of outdegree edges
+g is the number of nodes in the graph
+
+h2. Clique Proglem
 - http://en.wikipedia.org/wiki/Clique_problem
 - A social network dataset was found at [http://snap.stanford.edu/data/#socnets].  This will be the dataset used in our large-scale clique finding example.  Currently, two different datasets are of interest:
 -- soc-Epinions1: contains over 500K edges
@@ -216,6 +241,7 @@ h1. References
 \[2\] *Roomy: A System for Space Limited Computations* by Daniel Kunkle, Northeastern University, ACM 2010.
 \[3\] [http://en.wikipedia.org/wiki/Graph_theory].
 \[4\] *Social Network Analysis: Methods and Applications* by Stanley Wasserman and Katherine Faust, Cambridge University Press, 1994.
+\[5\] [http://en.wikipedia.org/wiki/Centrality]
 
 h1. Appendix
 h2. Troubleshooting

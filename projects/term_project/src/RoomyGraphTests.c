@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
 		 ableToAddMoreThanInitialSize() &&
 		 addingSameNodeDoesntIncreaseCount() &&
 		 addEdgeTest())
-		//&& getChildren())
+//		&& getChildren())
 		{
     printf("All tests passed\n");
   } else {

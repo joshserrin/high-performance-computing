@@ -3,34 +3,46 @@
 #include <string.h>
 #include <RoomyHashTable.h>
 
-// ===================================================
-// If documentation is lacking, please check RoomyGraph.h
-// ===================================================
+const uint64 NOTHING = -47;
 
+// =============================================================================
 // Use this function to traverse over all edges and execute a 
 // function on each child
-void forEachChild(uint64 parent, uint64 *edges, 
-	void (*f)(uint64 parent, uint64 child)) {
+void forEachChild(uint64 parent, uint64 *edges, void (*f)(uint64 parent, uint64 child)) {
 	uint64 size = edges[0];
 	uint64 i;
 	for(i = 0; i < size; i++) {
 		f(parent, edges[i + 1]);
 	}
 }
+
+// ============================================================================
+/*
+ Destroys the RoomyGraph and frees up memory allocated for g. 
+ */
 void RoomyGraph_destroy(RoomyGraph *g) {
 	RoomyHashTable_destroy(g->graph);
 	free(g);
 }
+
+// ============================================================================
+/* Adds the node to the RoomyGraph (RG).  
+	 NOTE: This is a delayed operation therefore you must call RoomyGraph_sync before 
+   the node is ensured to be added to the RG */
 void RoomyGraph_addNode(RoomyGraph *g, uint64 node) {
 	// We are adding 1 because that is what stores the stored
 	// number of edges.
 	void *EMPTY = calloc((1 + g->maxEdges), sizeof(uint64));
 	RoomyHashTable_insert(g->graph, &node, EMPTY);
 }
+
+ // ============================================================================
+/* Completes all delayed operations */
 void RoomyGraph_sync(RoomyGraph *g) {
 	RoomyHashTable_sync(g->graph);
 }
-// Private members and functions for containsNode
+
+// ============================================================================
 uint64 count; // if you are going to use this, don't forget to initialize it!
 uint64 searchNode;
 // We don't care about the val (which is the edgelist, BTW)
@@ -38,7 +50,10 @@ void countMatches(void* key, void* val) {
 	uint64 node = *(uint64 *)key;
 	if(node == searchNode) { count++; }
 }
-// End private members
+/* Returns 1 if the RoomyGraph contains a node equal to the provided node, or 0
+   if no node can be found.
+	 NOTE: It is recommended to ensure that the RoomyGraph has been sync'd before
+	   calling this function. */
 int RoomyGraph_containsNode(RoomyGraph *g, uint64 node) {
 	searchNode = node;
 	count = 0;
@@ -47,6 +62,8 @@ int RoomyGraph_containsNode(RoomyGraph *g, uint64 node) {
 	if(count > 0) { return 1; }
 	else { return 0; }
 }
+
+// =============================================================================
 uint64 glo_from;
 uint64 glo_to;
 void increaseCountByMatchingEdges(uint64 parent, uint64 child) {
@@ -59,8 +76,11 @@ void countEdges(void *key, void *value) {
 	if(from == glo_from) {
 		uint64 *edges = (uint64 *)value;
 		forEachChild(from, edges, increaseCountByMatchingEdges);
-	} 
+	}
 }
+
+/* Returns 1 if an edge originating at from and terminating at to is contained
+		within the RoomyGraph */
 int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	glo_from = from;
 	glo_to = to;
@@ -70,7 +90,9 @@ int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	if(count > 0) return 1;
 	else return 0;
 }
-// Private functions for nodeCount
+
+// =============================================================================
+/* Returns the number of nodes in the RoomyGraph */
 void increaseCount(void *k, void *v) { count++; }
 uint64 RoomyGraph_nodeCount(RoomyGraph *g) {
 	count = 0;
@@ -78,6 +100,8 @@ uint64 RoomyGraph_nodeCount(RoomyGraph *g) {
 	RoomyGraph_sync(g);
 	return count;
 }
+
+// =============================================================================
 void printEdge(uint64 parent, uint64 child) {
 	printf("%lli,", child);
 }
@@ -88,15 +112,17 @@ void printNodeAndChildren(void *k, void *v) {
 	forEachChild(parent, edges, printEdge);
 	printf("]\n");
 }
+/* Prints the contents of the RoomyGraph to the console */
 void RoomyGraph_print(RoomyGraph *g) {
 	RoomyHashTable_map(g->graph, printNodeAndChildren);
 	RoomyGraph_sync(g);
 }
+
+// =============================================================================
 typedef struct {
 	uint64 newEdge; // the new edge to be added
 	uint64 maxEdges; // the max number of edges that can leave a node
 } AddEdgePassed;
-// Private function that adds the newEdge to the nodes edgeList
 void addEdge(void *node, void *oldEdgeList, void *passed, void *newEdgeList) {
 	AddEdgePassed *arg = (AddEdgePassed *)passed;
 	// TODO HOW DO WE MAKE SURE TO NOT ADD TOO MANY NODES!!!!
@@ -108,17 +134,26 @@ void addEdge(void *node, void *oldEdgeList, void *passed, void *newEdgeList) {
 	edges[0] = newSize;
 	edges[insertIndex] = arg->newEdge;
 }
+/* Adds an directed edge originating at from and terminating at to.  It is
+   assumed that the nodes have already been added.  There is no check to 
+	 ensure this, though. 
+	 NOTE: this is a delayed operation */
 void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	AddEdgePassed arg;
 	arg.newEdge = to;
 	arg.maxEdges = g->maxEdges;
 	RoomyHashTable_update(g->graph, &from, &arg, addEdge);
 }
-//Children *children;
+
+// =============================================================================
+Children *children;
 void createChildren(void *key, void *value, void *passedVal) {
-	//printf("here1\n");
-	uint64 *c = value;
+	printf("create Children started\n");
+	uint64 *c = (uint64 *)value;
+	printf("value is %p\n", value);
+	printf("c is %p\n", c);
 	uint64 num = c[0];
+	printf("node has %lli number of edges\n", num);
 	//printf("here1a: %p\n", children);
 	//printf("here2: %d\n", num);
 	//children->count = num;
@@ -127,14 +162,87 @@ void createChildren(void *key, void *value, void *passedVal) {
 }
 Children* RoomyGraph_getChildren(RoomyGraph *g, uint64 parent) {
 	//children = NULL;
-	//printf("Getting children of %lli\n", parent);
-	RoomyHashTable_access(g->graph, &parent, &g->maxEdges, createChildren);
-	//printf("access called");
+	printf("Getting children of %lli\n", parent);
+	RoomyHashTable_access(g->graph, &parent, &g->maxEdges, &createChildren);
+	printf("access called\n");
 	RoomyGraph_sync(g);
-	//printf("Got children of %lli\n", parent);
+	printf("Got children of %lli\n", parent);
 	//return children;
 	return NULL;
 }
+
+// =============================================================================
+//                       Graph Algorithms
+// =============================================================================
+
+// Helper functions ============================================================
+double standardize(RoomyGraph *g, uint64 node, uint64 (*f)(RoomyGraph*, uint64)) {
+  uint64 d = f(g, node);
+  uint64 nodeCount = RoomyGraph_nodeCount(g);
+  return ((double) d) / ((double)(nodeCount - 1));
+}
+// =============================================================================
+
+uint64 degreeCentralityOfNode;
+void computeDegreeCentrality(void *key, void *value, void *DOESNOTMATTER) {
+	uint64 *edgeList = (uint64 *)value;
+	uint64 count = edgeList[0];
+	degreeCentralityOfNode = count;
+}
+/*
+The Degree Centrality of a node is defined as:
+C_d(n_i) = Xi+
+
+where, 
+n_i is the node
+Xi+ is the number of edges originating at n_i
+
+*source: Social Network Analysis: Methods and Applications by Stanley Wasserman and Katherine Faust
+*/
+uint64 RoomyGraphAlg_degreeCentrality(RoomyGraph *g, uint64 node) {
+	RoomyHashTable_access(g->graph, &node, &NOTHING, &computeDegreeCentrality);
+	RoomyGraph_sync(g);
+	return degreeCentralityOfNode;
+}
+/*
+C'_d(n_i) = C_d(n_i) / (g-1)
+where g is the number of nodes in graph g
+*/
+double RoomyGraphAlg_degreeCentralityStandardized(RoomyGraph *g, uint64 node) {
+  return standardize(g, node, RoomyGraphAlg_degreeCentrality);
+}
+
+// =============================================================================
+/*
+Degree Prestige is the number of indegree edges
+*/
+uint64 prestigeNode;
+uint64 prestigeCount;
+void increaseCountIfPrestigeNode(uint64 parent, uint64 child) {
+  if(child == prestigeNode) { prestigeCount++; }
+}
+void computePrestige(void *key, void *value) {
+  uint64 parent = *(uint64 *)key;
+  uint64 *edges = (uint64 *)value;
+  forEachChild(parent, edges, increaseCountIfPrestigeNode);
+}
+uint64 RoomyGraphAlg_degreePrestige(RoomyGraph *g, uint64 node) {
+  prestigeNode = node;
+  prestigeCount = 0;
+  RoomyHashTable_map(g->graph, computePrestige);
+  RoomyGraph_sync(g);
+  return prestigeCount;
+}
+double RoomyGraphAlg_degreePrestigeStandardized(RoomyGraph *g, uint64 node) {
+  return standardize(g, node, RoomyGraphAlg_degreePrestige);
+}
+
+// ================ End Graph Algorithms =======================================
+
+/*
+Constructs a RoomyGraph where each Node consists of bytesPerElt bytes
+with a maximum outgoing edge count of maxEdges.
+*/
 RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, 
                                  uint64 initialCapacity) {
   RoomyGraph* g = (RoomyGraph *)malloc(sizeof(RoomyGraph));
@@ -148,6 +256,7 @@ RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges,
 	// We must also attach the functions used for searching
 	RoomyHashTable_registerUpdateFunc(g->graph, addEdge, sizeof(AddEdgePassed));
 	RoomyHashTable_registerAccessFunc(g->graph, createChildren, sizeof(uint64));
+	RoomyHashTable_registerAccessFunc(g->graph, computeDegreeCentrality, sizeof(uint64)); // NOTHING passed
 
   return g;
 }
