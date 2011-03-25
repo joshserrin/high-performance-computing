@@ -13,6 +13,9 @@ OBJ=$(patsubst %, $(SRC)/%, $(_OBJ))
 _TESTS=RoomyGraphTests.o
 TESTS=$(patsubst %, $(SRC)/%, $(_TESTS))
 
+_ALGS=GraphAlgorithmTest.o CliqueFindingTest.o
+ALGS=$(patsubst %, $(SRC)/%, $(_ALGS))
+
 # simple rule to check for .h modifications when compiling
 # .c into .o files
 %.o: %.c $(DEPS)
@@ -23,8 +26,9 @@ compile: $(OBJ)
 tests: compile $(TESTS)
 	$(CC) -o RoomyGraphTest $(OBJ) $(TESTS) $(CFLAGS)
 
-algs: compile src/GraphAlgorithmTest.c
+algs: compile $(ALGS)
 	$(CC) -o GraphAlgorithmTest $(OBJ) src/GraphAlgorithmTest.c $(CFLAGS)
+	$(CC) -o CliqueFindingTest $(OBJ) src/CliqueFindingTest.c $(CFLAGS)
 
 examples: compile src/SimpleExample.c
 	$(CC) -o SimpleExample $(OBJ) src/SimpleExample.c $(CFLAGS)
@@ -36,3 +40,4 @@ clean:
 	rm -f RoomyGraphTest
 	rm -f SimpleExample
 	rm -f GraphAlgorithmTest
+	rm -f CliqueFindingTest

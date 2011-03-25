@@ -218,12 +218,18 @@ n_i: the node
 X+i: the number of indegree edges
 g: the number of nodes in the graph
 
-h2. Clique Proglem
+h2. Clique Finding
 - http://en.wikipedia.org/wiki/Clique_problem
 - A social network dataset was found at [http://snap.stanford.edu/data/#socnets].  This will be the dataset used in our large-scale clique finding example.  Currently, two different datasets are of interest:
 -- soc-Epinions1: contains over 500K edges
 -- soc-LiveJournal1: contains over 6.8M edges
 Each file contains (from,to) node pairs representing an edge
+
+A clique is defined as 'a maximal complete subgraph of three or more nodes.' \[4\]  A complete graph is a graph in which all nodes are connected to each other by an edge.
+
+h3. Brute-force clique finding
+1. Start with each node in a clique of 1
+2. Merge cliques where possible
 
 h1. Testing
 {note}
@@ -252,6 +258,7 @@ h1. References
 \[3\] [http://en.wikipedia.org/wiki/Graph_theory].
 \[4\] *Social Network Analysis: Methods and Applications* by Stanley Wasserman and Katherine Faust, Cambridge University Press, 1994.
 \[5\] [http://en.wikipedia.org/wiki/Centrality]
+\[6\] [http://www.ibluemojo.com/school/clique_algorithm.html]
 
 h1. Appendix
 h2. Troubleshooting

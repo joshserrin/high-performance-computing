@@ -3,6 +3,8 @@
 #include <string.h>
 #include <RoomyHashTable.h>
 
+const uint64 RGTRUE = 1;
+const uint64 RGFALSE = 0;
 const uint64 NOTHING = -47;
 
 // =============================================================================
@@ -14,6 +16,12 @@ void forEachChild(uint64 parent, uint64 *edges, void (*f)(uint64 parent, uint64 
 	for(i = 0; i < size; i++) {
 		f(parent, edges[i + 1]);
 	}
+}
+
+// =============================================================================
+char* uint64_to_string(char *buffer, uint64 i) {
+  sprintf(buffer, "%lli", i);
+  return buffer;
 }
 
 // ============================================================================
@@ -35,6 +43,13 @@ void RoomyGraph_addNode(RoomyGraph *g, uint64 node) {
 	void *EMPTY = calloc((1 + g->maxEdges), sizeof(uint64));
 	RoomyHashTable_insert(g->graph, &node, EMPTY);
 }
+void RoomyGraph_addNodes(RoomyGraph *g, uint64 nodes[], uint64 nodeCount) {
+	uint64 i;
+	for(i = 0; i < nodeCount; i++) {
+	  uint64 n = nodes[i];
+		RoomyGraph_addNode(g, n);
+	}
+}
 
  // ============================================================================
 /* Completes all delayed operations */
@@ -50,7 +65,7 @@ void countMatches(void* key, void* val) {
 	uint64 node = *(uint64 *)key;
 	if(node == searchNode) { count++; }
 }
-/* Returns 1 if the RoomyGraph contains a node equal to the provided node, or 0
+/* Returns RGTRUE if the RoomyGraph contains a node equal to the provided node, or RGFALSE
    if no node can be found.
 	 NOTE: It is recommended to ensure that the RoomyGraph has been sync'd before
 	   calling this function. */
@@ -59,8 +74,8 @@ int RoomyGraph_containsNode(RoomyGraph *g, uint64 node) {
 	count = 0;
 	RoomyHashTable_map(g->graph, countMatches);
 	RoomyGraph_sync(g);
-	if(count > 0) { return 1; }
-	else { return 0; }
+	if(count > 0) { return RGTRUE; }
+	else { return RGFALSE; }
 }
 
 // =============================================================================
@@ -87,8 +102,8 @@ int RoomyGraph_containsEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	count = 0;
 	RoomyHashTable_map(g->graph, countEdges);
 	RoomyGraph_sync(g);
-	if(count > 0) return 1;
-	else return 0;
+	if(count > 0) return RGTRUE;
+	else return RGFALSE;
 }
 
 // =============================================================================
@@ -143,6 +158,13 @@ void RoomyGraph_addEdge(RoomyGraph *g, uint64 from, uint64 to) {
 	arg.newEdge = to;
 	arg.maxEdges = g->maxEdges;
 	RoomyHashTable_update(g->graph, &from, &arg, addEdge);
+}
+void RoomyGraph_addEdges(RoomyGraph *g, uint64 from, uint64 *children, uint64 childCount) {
+	uint64 i = 0;
+	for(i = 0; i < childCount; i++) {
+		uint64 child = children[i];
+		RoomyGraph_addEdge(g, from, child);
+	}
 }
 
 // =============================================================================
@@ -235,6 +257,141 @@ uint64 RoomyGraphAlg_degreePrestige(RoomyGraph *g, uint64 node) {
 }
 double RoomyGraphAlg_degreePrestigeStandardized(RoomyGraph *g, uint64 node) {
   return standardize(g, node, RoomyGraphAlg_degreePrestige);
+}
+
+// =============================================================================
+
+// All of the current cliques.  This is basically an array of RoomyList*
+uint64 nextCliqueIndex;
+RoomyList **cliques;
+
+void printListElement(void *val) {
+  uint64 i = *(uint64 *)val;
+  printf("%lli, ", i);
+}
+void RoomyList_print(RoomyList *rl) {
+  RoomyList_map(rl, printListElement);
+}
+void printCliques() { 
+  int k;
+  for(k = 0; k < nextCliqueIndex; k++) {
+    RoomyList *rl = cliques[k];
+    printf("Clique [%i]: ", k);
+    RoomyList_print(rl);
+    printf("\n");
+  }
+}
+
+void makeInitialCliques(void *key, void *val) {
+  uint64 node = *(uint64 *)key;
+  char buffer[10]; // assume nodes are from 0 to 1bil
+  RoomyList *clique = RoomyList_make(uint64_to_string(buffer, node), sizeof(uint64));
+  RoomyList_add(clique, &node);
+  RoomyList_sync(clique);
+  cliques[nextCliqueIndex] = clique;
+  nextCliqueIndex++;
+}
+typedef struct {
+  int answer;
+  RoomyGraph *g;
+  RoomyList *b;
+} CanMergeArgs;
+typedef struct {
+  int answer;
+  uint64 node;
+  RoomyGraph *g;
+} CanMergeArgs2;
+void mergeValAns2(void *ansInOut, void *val) {
+  CanMergeArgs2 args = *(CanMergeArgs2 *)ansInOut;
+  
+  if(args.answer == RGTRUE) {
+    // parent has been connected to all previous children so lets see if it is 
+    // connected to this child.
+    RoomyGraph *g = args.g;
+    uint64 parent = args.node;
+    uint64 child = *(uint64 *)val;
+    args.answer = RoomyGraph_containsEdge(g, parent, child);
+  } else {
+    // We've already determined that parent was not connected to a previous node
+    // so there is no point to determine if child is connected to parent.
+    args.answer = RGFALSE;
+  }
+}
+void mergeAnsAns2(void *ansInOut, void *ansIn) {
+  CanMergeArgs2 a = *(CanMergeArgs2 *)ansInOut;
+  CanMergeArgs2 b = *(CanMergeArgs2 *)ansIn;
+  if(a.answer == RGFALSE || b.answer == RGFALSE) { a.answer = RGFALSE; }
+  else { a.answer = RGTRUE; }
+}
+void mergeValAns(void *ansInOut, void *val) {
+  printf("mergeValAns\n");
+  CanMergeArgs args = *(CanMergeArgs *)ansInOut;
+  
+  if(args.answer == RGTRUE) {
+    // All previous nodes in A have been connected to all nodes in B, so determine
+    // if this node is connected to all nodes in B
+    uint64 node = *(uint64 *)val;
+    RoomyList *b = args.b;  
+    CanMergeArgs2 args2;
+    args2.answer = args.answer;
+    args2.node = node;
+    args2.g = args.g;
+    // see if all nodes in b are attached to node
+    RoomyList_reduce(b, &args2, sizeof(CanMergeArgs2), mergeValAns2, mergeAnsAns2);
+    
+    if(args2.answer == RGTRUE) { args.answer = RGTRUE; } // node is connected to all nodes in B
+    else { args.answer = RGFALSE; } // node is NOT connected to all nodes in B
+  } else { args.answer = RGFALSE; }
+}
+void mergeAnsAns(void *ansInOut, void *ansIn) {
+  printf("mergeAnsAns\n");
+  CanMergeArgs a = *(CanMergeArgs *)ansInOut;
+  CanMergeArgs b = *(CanMergeArgs *)ansIn;
+  if(a.answer == RGFALSE || b.answer == RGFALSE) { a.answer = RGFALSE; }
+  else { a.answer = RGTRUE; }
+}
+int canMergeCliques(RoomyGraph *g, RoomyList *a, RoomyList *b) {
+  CanMergeArgs args;
+  args.answer = RGTRUE;
+  args.g = g;
+  args.b = b;
+  
+  // We can merge the cliques if all nodes in a are connected to all nodes in b
+  RoomyList_reduce(a, &args, sizeof(CanMergeArgs), mergeValAns, mergeAnsAns);
+}
+void mergeCliques(RoomyList *a, RoomyList *b) {
+  // Add all nodes from b into a
+  // empty out b
+  RoomyList_addAll(a, b);
+  RoomyList_removeAll(b, b);
+  RoomyList_sync(a);
+  RoomyList_sync(b);
+}
+void RoomyGraph_findCliques(RoomyGraph *g) {
+  nextCliqueIndex = 0;
+  uint64 nodeCount = RoomyGraph_nodeCount(g);
+  cliques = calloc(nodeCount, sizeof(RoomyList));
+  
+  // make the cliques of k=1
+  RoomyHashTable_map(g->graph, makeInitialCliques);
+  
+  printCliques();
+  
+  // Right now this is only a single iteration
+  uint64 cliqueCount = nextCliqueIndex;
+  int i, j;
+  for(i = 0; i < cliqueCount; i++) {
+    RoomyList *a = cliques[i];
+    for(j = i+1; j < cliqueCount; j++) {
+      RoomyList *b = cliques[j];
+      if(canMergeCliques(g, a, b) == RGTRUE) {
+        printf("clique[%i] and clique[%i] can be merged", i, j);
+        mergeCliques(a, b);
+      }
+    }
+  }
+  printf("Iteration finished\n");
+  printCliques();
 }
 
 // ================ End Graph Algorithms =======================================
