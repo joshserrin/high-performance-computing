@@ -281,7 +281,6 @@ void printCliques() {
     printf("\n");
   }
 }
-
 void makeInitialCliques(void *key, void *val) {
   uint64 node = *(uint64 *)key;
   char buffer[10]; // assume nodes are from 0 to 1bil
@@ -302,16 +301,26 @@ typedef struct {
   RoomyGraph *g;
 } CanMergeArgs2;
 void mergeValAns2(void *ansInOut, void *val) {
+	printf("mergeValAns2\n");
   CanMergeArgs2 args = *(CanMergeArgs2 *)ansInOut;
   
   if(args.answer == RGTRUE) {
+		//printf("mergeValAns2: Inner merge is true\n");
     // parent has been connected to all previous children so lets see if it is 
     // connected to this child.
     RoomyGraph *g = args.g;
     uint64 parent = args.node;
     uint64 child = *(uint64 *)val;
-    args.answer = RoomyGraph_containsEdge(g, parent, child);
+    int doesEdgeExists = RoomyGraph_containsEdge(g, parent, child);
+    if(doesEdgeExists == RGTRUE) { 
+			printf("Edge exists between %lli and %lli\n", parent, child); 
+			args.answer = RGTRUE;
+		} else {
+			printf("Edge does NOT exist between %lli and %lli\n", parent, child);
+			args.answer = RGFALSE;
+		}
   } else {
+		printf("mergeValAns2 inner merge is FALSE!\n");
     // We've already determined that parent was not connected to a previous node
     // so there is no point to determine if child is connected to parent.
     args.answer = RGFALSE;
@@ -324,7 +333,6 @@ void mergeAnsAns2(void *ansInOut, void *ansIn) {
   else { a.answer = RGTRUE; }
 }
 void mergeValAns(void *ansInOut, void *val) {
-  printf("mergeValAns\n");
   CanMergeArgs args = *(CanMergeArgs *)ansInOut;
   
   if(args.answer == RGTRUE) {
@@ -333,22 +341,34 @@ void mergeValAns(void *ansInOut, void *val) {
     uint64 node = *(uint64 *)val;
     RoomyList *b = args.b;  
     CanMergeArgs2 args2;
-    args2.answer = args.answer;
+    args2.answer = RGFALSE;
     args2.node = node;
     args2.g = args.g;
     // see if all nodes in b are attached to node
     RoomyList_reduce(b, &args2, sizeof(CanMergeArgs2), mergeValAns2, mergeAnsAns2);
+    RoomyList_sync(b);
     
-    if(args2.answer == RGTRUE) { args.answer = RGTRUE; } // node is connected to all nodes in B
-    else { args.answer = RGFALSE; } // node is NOT connected to all nodes in B
-  } else { args.answer = RGFALSE; }
+    if(args2.answer == RGTRUE) {
+			printf("%lli is connected to all nodes: ", node);
+			RoomyList_print(b);
+			// node is connected to all nodes in B
+			args.answer = RGTRUE;
+		}
+		else {
+			// node is NOT connected to all nodes in B
+			args.answer = RGFALSE;
+		}
+  } else { 
+		printf("FALSE!\n");
+		args.answer = RGFALSE; 
+	}
 }
 void mergeAnsAns(void *ansInOut, void *ansIn) {
   printf("mergeAnsAns\n");
   CanMergeArgs a = *(CanMergeArgs *)ansInOut;
   CanMergeArgs b = *(CanMergeArgs *)ansIn;
-  if(a.answer == RGFALSE || b.answer == RGFALSE) { a.answer = RGFALSE; }
-  else { a.answer = RGTRUE; }
+	if(a.answer == RGTRUE && b.answer == RGTRUE) { a.answer = RGTRUE; }
+	else { a.answer = RGFALSE; }
 }
 int canMergeCliques(RoomyGraph *g, RoomyList *a, RoomyList *b) {
   CanMergeArgs args;
@@ -358,6 +378,10 @@ int canMergeCliques(RoomyGraph *g, RoomyList *a, RoomyList *b) {
   
   // We can merge the cliques if all nodes in a are connected to all nodes in b
   RoomyList_reduce(a, &args, sizeof(CanMergeArgs), mergeValAns, mergeAnsAns);
+	RoomyList_sync(b);
+  RoomyList_sync(a);
+
+	return args.answer;
 }
 void mergeCliques(RoomyList *a, RoomyList *b) {
   // Add all nodes from b into a
@@ -378,14 +402,16 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
   printCliques();
   
   // Right now this is only a single iteration
-  uint64 cliqueCount = nextCliqueIndex;
+//  uint64 cliqueCount = nextCliqueIndex;
+	uint64 cliqueCount = 2;
   int i, j;
   for(i = 0; i < cliqueCount; i++) {
     RoomyList *a = cliques[i];
     for(j = i+1; j < cliqueCount; j++) {
       RoomyList *b = cliques[j];
+			printf("clique[%i] to clique[%i]========\n", i, j);
       if(canMergeCliques(g, a, b) == RGTRUE) {
-        printf("clique[%i] and clique[%i] can be merged", i, j);
+        printf("clique[%i] and clique[%i] can be merged\n", i, j);
         mergeCliques(a, b);
       }
     }

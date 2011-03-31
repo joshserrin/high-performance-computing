@@ -2,5 +2,10 @@ src/*.o
 RoomyGraphTest
 SimpleExample
 GraphAlgorithmTest
+CliqueFindingTest
+datasets
+diagrams
+documents
+reports
 *.swp
 **/*.swp
