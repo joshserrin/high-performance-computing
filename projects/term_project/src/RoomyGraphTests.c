@@ -30,16 +30,22 @@ int main(int argc, char ** argv) {
 	Roomy_finalize();
 }
 int loadFromDigraph() {
-	printf("loadFromDigraph()\n");
 	FILE *fp = fopen("./datasets/simple.dot", "r");
 	uint64 maxEdges = 2;
 	uint64 initialCapacity = 3;
 	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
 	RoomyGraph_populateFromDigraph(g, fp);
-	printf("Loaded graph =================\n");
+/*	printf("Loaded graph =================\n");
 	RoomyGraph_print(g);
-	printf("==============================\n");
-	return FAILED;
+	printf("==============================\n"); */
+	assert(TRUE == RoomyGraph_containsNode(g, 1));
+	assert(TRUE == RoomyGraph_containsNode(g, 2));
+	assert(TRUE == RoomyGraph_containsNode(g, 3));
+	assert(TRUE == RoomyGraph_containsEdge(g, 1, 2));
+	assert(TRUE == RoomyGraph_containsEdge(g, 1, 3));
+	assert(TRUE == RoomyGraph_containsEdge(g, 2, 3));
+	printf("loadFromDigraph() completed successfully.\n");
+	return PASSED;
 }
 int getChildren() {
 	RoomyGraph *g = RoomyGraph_make("getChildren", 4, 4);

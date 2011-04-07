@@ -407,9 +407,9 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
 		if(!regexec(&isEdgeDefinition, buffer, 0, NULL, 0) && // edge string
 			 !regexec(&number, buffer, 3, &match, 0)) {  // now get the numbers
 			// Match found!  [parent] -> [child]
-			printf("match:");
+			/*printf("match:");
 			printf(buffer);
-			printf("\n");
+			printf("\n");*/
 
 			// first capture group is the entire string
 			char *parent = strndup(&buffer[match[1].rm_so], match[1].rm_eo - match[1].rm_so);
