@@ -17,8 +17,10 @@ int main(int argc, char ** argv) {
 		 addMultipleNodes() &&
 		 ableToAddMoreThanInitialSize() &&
 		 addingSameNodeDoesntIncreaseCount() &&
-		 addEdgeTest())
+		 addEdgeTest() &&
+		 loadFromDigraph()
 //		&& getChildren())
+			)
 		{
     printf("All tests passed\n");
   } else {
@@ -26,6 +28,18 @@ int main(int argc, char ** argv) {
   }
 	
 	Roomy_finalize();
+}
+int loadFromDigraph() {
+	printf("loadFromDigraph()\n");
+	FILE *fp = fopen("./datasets/simple.dot", "r");
+	uint64 maxEdges = 2;
+	uint64 initialCapacity = 3;
+	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
+	RoomyGraph_populateFromDigraph(g, fp);
+	printf("Loaded graph =================\n");
+	RoomyGraph_print(g);
+	printf("==============================\n");
+	return FAILED;
 }
 int getChildren() {
 	RoomyGraph *g = RoomyGraph_make("getChildren", 4, 4);
