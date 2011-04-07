@@ -389,6 +389,11 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
 
 // ================ End Graph Algorithms =======================================
 
+uint64 string_to_uint64(char *string) {
+	uint64 i;
+	i = (uint64 *)atoi(string);
+	return i;
+}
 void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
 	char buffer[100];
 	regex_t isEdgeDefinition;
@@ -409,14 +414,20 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
 			// first capture group is the entire string
 			char *parent = strndup(&buffer[match[1].rm_so], match[1].rm_eo - match[1].rm_so);
 			char *child  = strndup(&buffer[match[2].rm_so], match[2].rm_eo - match[2].rm_so);
-			printf("parent:");
-			printf(parent);
-			printf("\n");
-			printf("child:");
-			printf(child);
-			printf("\n");
+			uint64 pNode = string_to_uint64(parent);
+			uint64 cNode = string_to_uint64(child);
+			//printf("parent: %lli\n", pNode);
+			//printf("child: %lli\n", cNode);
+			if(RGTRUE != RoomyGraph_containsNode(g, pNode)) {
+				RoomyGraph_addNode(g, pNode);
+			}
+			if(RGTRUE != RoomyGraph_containsNode(g, cNode)) {
+				RoomyGraph_addNode(g, cNode);
+			}
+			RoomyGraph_addEdge(g, pNode, cNode);
 		}
 	}
+	RoomyGraph_sync(g);
 }
 
 /*
