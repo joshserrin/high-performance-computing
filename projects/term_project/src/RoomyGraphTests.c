@@ -18,7 +18,9 @@ int main(int argc, char ** argv) {
 		 ableToAddMoreThanInitialSize() &&
 		 addingSameNodeDoesntIncreaseCount() &&
 		 addEdgeTest() &&
-		 loadFromDigraph()
+		 loadFromDigraph() 
+//		 && loadFromLargeDigraph()
+     && runSimpleCliqueFinding() 
 //		&& getChildren())
 			)
 		{
@@ -29,20 +31,59 @@ int main(int argc, char ** argv) {
 	
 	Roomy_finalize();
 }
+// This graph is taken from 'Social Network Analysis: Methods and Application'
+// by Wasserman et al page 255
+RoomyGraph* createFig71() {
+	RoomyGraph *g = RoomyGraph_make("fig 7.1", 5, 7);
+	FILE *fp = fopen("./datasets/fig71.dot", "r");
+	RoomyGraph_populateFromDigraph(g, fp);
+	return g;
+}
+int runSimpleCliqueFinding() {
+	RoomyGraph *g = createFig71();
+	printf("The graph...\n");
+	RoomyGraph_print(g);
+
+	/*
+		The cliques for this graph are
+		[1,2,3], [1,3,5] and [3,4,5,6]
+	 */
+	RoomyGraph_findCliques(g);
+
+	printf("runSimpleCliqueFinding() completed successfully");
+	return PASSED;
+}
+/*
+	This is a VERY long test and will take a VERY long time.  Be careful!
+*/
+int loadFromLargeDigraph() {
+	FILE *fp = fopen("./datasets/Wiki-Vote.dot", "r");
+	uint64 maxEdges = 12710;
+	uint64 initialCapacity = 999;
+	RoomyGraph *g = RoomyGraph_make("large-do", maxEdges, initialCapacity);
+	printf("Started %ld\n", time(NULL));
+	RoomyGraph_populateFromDigraph(g, fp);
+	printf("Ended %ld\n", time(NULL));
+
+	RoomyGraph_print(g);
+
+	printf("loadFromLargeDigraph() completed successfully.\n");
+	return PASSED;
+}
 int loadFromDigraph() {
 	FILE *fp = fopen("./datasets/simple.dot", "r");
 	uint64 maxEdges = 2;
 	uint64 initialCapacity = 3;
 	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
 	RoomyGraph_populateFromDigraph(g, fp);
-/*	printf("Loaded graph =================\n");
-	RoomyGraph_print(g);
-	printf("==============================\n"); */
-	assert(TRUE == RoomyGraph_containsNode(g, 1));
+	//printf("Loaded graph =================\n");
+	//RoomyGraph_print(g);
+	//printf("==============================\n"); 
+	assert(TRUE == RoomyGraph_containsNode(g, 10));
 	assert(TRUE == RoomyGraph_containsNode(g, 2));
 	assert(TRUE == RoomyGraph_containsNode(g, 3));
-	assert(TRUE == RoomyGraph_containsEdge(g, 1, 2));
-	assert(TRUE == RoomyGraph_containsEdge(g, 1, 3));
+	assert(TRUE == RoomyGraph_containsEdge(g, 10, 2));
+	assert(TRUE == RoomyGraph_containsEdge(g, 10, 3));
 	assert(TRUE == RoomyGraph_containsEdge(g, 2, 3));
 	printf("loadFromDigraph() completed successfully.\n");
 	return PASSED;

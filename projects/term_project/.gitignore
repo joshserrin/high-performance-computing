@@ -9,3 +9,4 @@ documents
 reports
 *.swp
 **/*.swp
+test-log.txt
