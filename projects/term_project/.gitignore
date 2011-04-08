@@ -1,9 +1,11 @@
+datasets/_old
+datasets/*.png
+datasets/*.txt
 src/*.o
 RoomyGraphTest
 SimpleExample
 GraphAlgorithmTest
 CliqueFindingTest
-datasets
 diagrams
 documents
 reports

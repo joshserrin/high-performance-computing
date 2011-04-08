@@ -1,0 +1,7 @@
+When getting a new dataset, you want to 
+
+1. Convert to dot language using `./creategraph.sh`
+2. Determine the max edge id using `./largestedge.sh`	
+3. Determine the max number of edges needed using `./edgecount.sh | sort`
+
+To make the process easier next time, feel free to supply the output at the head of the .dot file
