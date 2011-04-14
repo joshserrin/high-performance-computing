@@ -261,7 +261,7 @@ double RoomyGraphAlg_degreePrestigeStandardized(RoomyGraph *g, uint64 node) {
 }
 
 // =============================================================================
-
+/*
 // All of the current cliques.  This is basically an array of RoomyList*
 uint64 nextCliqueIndex;
 RoomyList **cliques;
@@ -352,7 +352,7 @@ int canMergeCliques(RoomyGraph *g, RoomyList *a, RoomyList *b) {
 void RoomyGraph_findCliques(RoomyGraph *g) {
   nextCliqueIndex = 0;
   uint64 nodeCount = RoomyGraph_nodeCount(g);
-  cliques = calloc(nodeCount*nodeCount, sizeof(RoomyList));
+  cliques = calloc(nodeCount, sizeof(RoomyList));
   
   // make the cliques of k=1
   RoomyHashTable_map(g->graph, makeInitialCliques);
@@ -371,13 +371,12 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
       if(canMergeCliques(g, a, b) == RGTRUE) {
         printf("clique[%i] and clique[%i] can be merged\n", i, j);
 				// merges the two cliques into one and adds it to the end of the list
-/*				RoomyList *newOne = RoomyList_make(nextCliqueName(), sizeof(uint64));
+				RoomyList *newOne = RoomyList_make(nextCliqueName(), sizeof(uint64));
 				RoomyList_addAll(newOne, a);
 				RoomyList_addAll(newOne, b);
 				RoomyList_sync(newOne);
 				cliques[nextCliqueIndex] = newOne;
 				nextCliqueIndex++;
-				*/
 				RoomyList_addAll(a, b);
 				RoomyList_sync(a);
       }
@@ -385,6 +384,124 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
   }
   printf("Iteration finished\n");
   printCliques();
+}
+*/
+RoomyGraph *cliqueGraph;
+uint64 nodeCountAtCurrentLevel;
+RoomyList *currentLevel;
+RoomyList *nextLevel;
+uint64 *currentClique;
+uint64 cliqueFound;
+void makeInitialCliques(void *key, void *val) { 
+	uint64 node = *(uint64 *)key;
+	uint64 clique[nodeCountAtCurrentLevel];
+	clique[0] = node;
+	RoomyList_add(currentLevel, &clique);
+}
+void printElement(void *val) {
+	uint64 *clique = (uint64 *)val;
+	uint64 i;
+	printf("[");
+	for(i = 0; i<nodeCountAtCurrentLevel; i++) {
+		uint64 node = clique[i];
+		printf("%lli,", node);
+	}
+	printf("]\n");
+}
+void printLevel(RoomyList *rl) {
+	printf("Level:\n");
+	RoomyList_map(rl, printElement);
+	RoomyList_sync(rl);
+}
+int compareElts(const void *this, const void *that) {
+	uint64 a = *(uint64 *)this;
+	uint64 b = *(uint64 *)that;
+
+	return a - b;
+}
+int containsElement(uint64 *elts, uint64 elt, uint64 size) {
+	uint64 i;
+	for(i = 0; i < size; i++) {
+		uint64 other = elts[i];
+		if(other != NULL && other == elt) {
+			return RGTRUE;
+		}
+	}
+	return RGFALSE;
+}
+void mergeIfPossible(void *val) {
+	uint64 *other = (uint64 *)val;
+	uint64 i, j;
+	for(i = 0; i < nodeCountAtCurrentLevel; i++) {
+		for(j = 0; j < nodeCountAtCurrentLevel; j++) {
+			uint64 a = currentClique[i];
+			uint64 b = other[j];
+			//printf("%lli and %lli\n", a, b);
+			if(RoomyGraph_containsEdge(cliqueGraph, a, b) == RGFALSE ||
+				 RoomyGraph_containsEdge(cliqueGraph, b, a) == RGFALSE) {
+				// there isn't an edge between a and b and therefore
+				// the two cliques cannot be merged.  Finish the function
+				return;
+			}
+		}
+	}
+	// At this point, the function wasn't terminated due to two nodes
+	// not having an edge between them.  Therefore, all nodes in currentClique
+	// have an edge to all nodes in other and therefore the combination of the two
+	// forms a clique.
+
+	cliqueFound = RGTRUE;
+	uint64 size = nodeCountAtCurrentLevel*2;
+	uint64 *newClique[size];
+	for(i = 0; i < nodeCountAtCurrentLevel; i++) {
+		newClique[i] = currentClique[i];
+	}
+	uint64 k = i;
+	for(i = 0; i < nodeCountAtCurrentLevel; i++) {
+		newClique[nodeCountAtCurrentLevel+i] = other[i];
+		/*
+		if(containsElement(newClique, other[i], size) == RGFALSE) {
+			k++;
+			newClique[k] = other[i];
+		}
+		*/
+	}
+	qsort(newClique, 2*nodeCountAtCurrentLevel, sizeof(uint64), compareElts);
+	RoomyList_add(nextLevel, &newClique);
+}
+void mergeCliques(void *val) {
+	currentClique = (uint64 *)val;
+	RoomyList_map(currentLevel, mergeIfPossible);
+}
+void doCliqueIteration() {
+	cliqueFound = RGFALSE;
+	nextLevel = RoomyList_make("next-level", 2*nodeCountAtCurrentLevel*sizeof(uint64));
+
+	RoomyList_map(currentLevel, mergeCliques);
+	RoomyList_sync(currentLevel);
+	RoomyList_sync(nextLevel);
+
+	RoomyList_removeDupes(nextLevel);
+
+	// cliques double in size!
+	nodeCountAtCurrentLevel = nodeCountAtCurrentLevel*2;
+	currentLevel = RoomyList_make("current-level", nodeCountAtCurrentLevel*sizeof(uint64));
+	RoomyList_addAll(currentLevel, nextLevel);
+}
+void RoomyGraph_findCliques(RoomyGraph *g) {
+	cliqueFound = RGTRUE;
+	cliqueGraph = g;
+	nodeCountAtCurrentLevel = 1;
+	currentLevel = RoomyList_make("current-level", nodeCountAtCurrentLevel*sizeof(uint64));
+	RoomyHashTable_map(g->graph, makeInitialCliques);
+	RoomyList_sync(currentLevel);
+
+	printLevel(currentLevel);
+
+	while(cliqueFound == RGTRUE) {
+		doCliqueIteration();
+		printLevel(currentLevel);
+	}
 }
 
 // ================ End Graph Algorithms =======================================
