@@ -495,12 +495,22 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
 
 // ================ End Graph Algorithms =======================================
 
+RoomyGraph *digraphGraph;
 uint64 string_to_uint64(char *string) {
 	uint64 i;
 	i = (uint64 *)atoi(string);
 	return i;
 }
-void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
+void addToGraph(void *val) {
+	uint64 node = *(uint64 *)val;
+	printf("Adding %lli to graph\n", node);
+	RoomyGraph_addNode(digraphGraph, node);
+}
+void forEachLine(RoomyGraph *g, char *filepath, void (*doSomething)(RoomyGraph *g, uint64 parent, uint64 child)) {
+  printf("opening file");
+  printf(filepath);
+  FILE *fp = fopen("./datasets/fig71.dot", "r");
+
 	char buffer[100];
 	regex_t isEdgeDefinition;
 	regex_t number;
@@ -523,6 +533,65 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
 			char *child  = strndup(&buffer[match[2].rm_so], match[2].rm_eo - match[2].rm_so);
 			uint64 pNode = string_to_uint64(parent);
 			uint64 cNode = string_to_uint64(child);
+			doSomething(g, pNode, cNode);
+		}
+	}
+
+	regfree(&isEdgeDefinition);
+	regfree(&number);
+}
+RoomyList *nodes;
+void addToNodes(RoomyGraph *g, uint64 parent, uint64 child) {
+  RoomyList_add(nodes, &parent);
+  RoomyList_add(nodes, &child);
+}
+void addEdgeFromFile(RoomyGraph *g, uint64 parent, uint64 child) {
+  RoomyGraph_addEdge(g, parent, child);
+}
+void RoomyGraph_populateFromDigraph(RoomyGraph *g, char *fp) {
+  digraphGraph = g;
+
+	// Add all the nodes to the graph
+	nodes = RoomyList_make("nodes", sizeof(uint64));
+	RoomyList_sync(nodes);
+	forEachLine(g, fp, addToNodes);
+	RoomyList_sync(nodes);
+	RoomyList_removeDupes(nodes);
+	RoomyList_map(nodes, addToGraph);
+	RoomyList_sync(nodes);
+	RoomyGraph_sync(g);
+	RoomyList_destroy(nodes);
+	
+	// Now, add all the edges
+	forEachLine(g, fp, addEdgeFromFile);
+	RoomyGraph_sync(g);
+
+/*
+	char buffer[100];
+	regex_t isEdgeDefinition;
+	regex_t number;
+	regmatch_t match[3];
+	regcomp(&isEdgeDefinition, "[0-9] -> [0-9]", 0);
+	regcomp(&number, "\\([0-9]*\\) -> \\([0-9]*\\)", 0);
+
+	int i=0;
+	while(fgets(buffer, 20, fp)) {
+		printf("%i\n", ++i);
+
+		// We assume the lines end in newlines
+		*(index(buffer, '\n')) = '\0';
+		if(!regexec(&isEdgeDefinition, buffer, 0, NULL, 0) && // edge string
+			 !regexec(&number, buffer, 3, &match, 0)) {  // now get the numbers
+			// Match found!  [parent] -> [child]
+
+			// first capture group is the entire string
+			char *parent = strndup(&buffer[match[1].rm_so], match[1].rm_eo - match[1].rm_so);
+			char *child  = strndup(&buffer[match[2].rm_so], match[2].rm_eo - match[2].rm_so);
+			uint64 pNode = string_to_uint64(parent);
+			uint64 cNode = string_to_uint64(child);
+			RoomyList_add(nodes, &pNode);
+			RoomyList_add(nodes, &cNode);
+			
 			if(RGTRUE != RoomyGraph_containsNode(g, pNode)) {
 				RoomyGraph_addNode(g, pNode);
 			}
@@ -530,11 +599,14 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
 				RoomyGraph_addNode(g, cNode);
 			}
 			RoomyGraph_addEdge(g, pNode, cNode);
+			
 		}
 	}
-	RoomyGraph_sync(g);
+	
+
 	regfree(&isEdgeDefinition);
 	regfree(&number);
+	*/
 }
 
 /*

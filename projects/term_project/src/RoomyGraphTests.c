@@ -35,7 +35,8 @@ int main(int argc, char ** argv) {
 // by Wasserman et al page 255
 RoomyGraph* createFig71() {
 	RoomyGraph *g = RoomyGraph_make("fig 7.1", 5, 7);
-	FILE *fp = fopen("./datasets/fig71.dot", "r");
+	//FILE *fp = fopen("./datasets/fig71.dot", "r");
+	char fp[] = "./datasets/fig71.dot";
 	RoomyGraph_populateFromDigraph(g, fp);
 	return g;
 }
