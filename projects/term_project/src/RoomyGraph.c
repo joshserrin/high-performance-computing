@@ -466,6 +466,8 @@ void doCliqueIteration() {
 	RoomyList_sync(currentLevel);
 	RoomyList_sync(nextLevel);
 
+	// We probably want to remove duplicates but doing so slows the 
+	// algorithm down A LOT!  Rough estimate is by about 5x.
 //	RoomyList_removeDupes(nextLevel);
 
 	// cliques double in size!
@@ -483,11 +485,11 @@ void RoomyGraph_findCliques(RoomyGraph *g) {
 	RoomyList_sync(currentLevel);
 	RoomyList_sync(nodes);
 
-	printLevel(currentLevel);
+//	printLevel(currentLevel);
 
 	while(cliqueFound == RGTRUE) {
 		doCliqueIteration();
-		printLevel(currentLevel);
+//		printLevel(currentLevel);
 	}
 }
 
