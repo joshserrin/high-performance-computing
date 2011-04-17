@@ -20,7 +20,7 @@ int main(int argc, char ** argv) {
 		 addEdgeTest() &&
 		 loadFromDigraph() 
 		 && loadFromFigure71()
-//		 && loadFromLargeDigraph()
+		 && loadFromLargeDigraph()
      && runSimpleCliqueFinding() 
 //		&& getChildren())
 			)
@@ -36,8 +36,13 @@ int main(int argc, char ** argv) {
 // by Wasserman et al page 255
 RoomyGraph* createFig71() {
 	RoomyGraph *g = RoomyGraph_make("fig 7.1", 5, 7);
+	
 	FILE *fp = fopen("./datasets/fig71.dot", "r");
 	RoomyGraph_populateFromDigraph(g, fp);
+	fclose(fp);
+	FILE *fp2 = fopen("./datasets/fig71.dot", "r");
+	RoomyGraph_addEdgesFromDigraph(g, fp2);
+	fclose(fp2);
 	return g;
 }
 int loadFromFigure71() {
@@ -49,10 +54,10 @@ int loadFromFigure71() {
   return PASSED;
 }
 int runSimpleCliqueFinding() {
-  printf("runSimpleCliqueFinding start...\n");
+  //printf("runSimpleCliqueFinding start...\n");
 	RoomyGraph *g = createFig71();
-	printf("The graph...\n");
-	RoomyGraph_print(g);
+	//printf("The graph...\n");
+	//RoomyGraph_print(g);
 
 	/*
 		The cliques for this graph are
@@ -60,44 +65,54 @@ int runSimpleCliqueFinding() {
 	 */
 	RoomyGraph_findCliques(g);
 
-	printf("runSimpleCliqueFinding() completed successfully");
+	printf("runSimpleCliqueFinding completed successfully\n");
 	return PASSED;
 }
 /*
 	This is a VERY long test and will take a VERY long time.  Be careful!
 */
 int loadFromLargeDigraph() {
-  //printf("loadFromLargeDigraph started...");
-	FILE *fp = fopen("./datasets/Wiki-Vote.dot", "r");
 	uint64 maxEdges = 12710;
 	uint64 initialCapacity = 999;
 	RoomyGraph *g = RoomyGraph_make("large-do", maxEdges, initialCapacity);
+	
 	printf("Started %ld\n", time(NULL));
+	FILE *fp = fopen("./datasets/Wiki-Vote.dot", "r");
 	RoomyGraph_populateFromDigraph(g, fp);
+	fclose(fp);
+	printf("All nodes added!\n");
+	FILE *fp2 = fopen("./datasets/Wiki-Vote.dot", "r");
+	RoomyGraph_addEdgesFromDigraph(g, fp2);
+	fclose(fp2);
 	printf("Ended %ld\n", time(NULL));
 
-	RoomyGraph_print(g);
+	//RoomyGraph_print(g);
 
 	printf("loadFromLargeDigraph() completed successfully.\n");
 	return PASSED;
 }
 int loadFromDigraph() {
-  printf("loadFromDigraph started!\n");
-	FILE *fp = fopen("./datasets/simple.dot", "r");
+//  printf("loadFromDigraph started!\n");
 	uint64 maxEdges = 2;
 	uint64 initialCapacity = 3;
 	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
+
+	FILE *fp = fopen("./datasets/simple.dot", "r");
 	RoomyGraph_populateFromDigraph(g, fp);
-	printf("Loaded graph =================\n");
-	RoomyGraph_print(g);
-	printf("==============================\n"); 
+	fclose(fp);
+	FILE *fp2 = fopen("./datasets/simple.dot", "r");
+	RoomyGraph_addEdgesFromDigraph(g, fp2);
+	fclose(fp2);
+//	printf("Loaded graph =================\n");
+//	RoomyGraph_print(g);
+//	printf("==============================\n"); 
 	assert(TRUE == RoomyGraph_containsNode(g, 10));
 	assert(TRUE == RoomyGraph_containsNode(g, 2));
 	assert(TRUE == RoomyGraph_containsNode(g, 3));
 	assert(TRUE == RoomyGraph_containsEdge(g, 10, 2));
 	assert(TRUE == RoomyGraph_containsEdge(g, 10, 3));
 	assert(TRUE == RoomyGraph_containsEdge(g, 2, 3));
-	printf("loadFromDigraph() completed successfully.\n");
+	printf("loadFromDigraph completed successfully.\n");
 	return PASSED;
 }
 int getChildren() {

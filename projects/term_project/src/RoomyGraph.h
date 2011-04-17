@@ -31,6 +31,7 @@ typedef struct {
 // =================== Basic RoomyGraph Functions ==============================
 RoomyGraph* RoomyGraph_make(char* name, uint64 maxEdges, uint64 initialCapacity);
 void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *filepath);
+void RoomyGraph_addEdgesFromDigraph(RoomyGraph *g, FILE *filepath);
 void RoomyGraph_destroy(RoomyGraph *g);
 void RoomyGraph_addNode(RoomyGraph *g, uint64 node);
 void RoomyGraph_addNodes(RoomyGraph *g, uint64 nodes[], uint64 nodeCount);
