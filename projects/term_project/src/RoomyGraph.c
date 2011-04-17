@@ -507,8 +507,8 @@ void addToGraph(void *val) {
 	RoomyGraph_addNode(digraphGraph, node);
 }
 void forEachLine(RoomyGraph *g, char *filepath, void (*doSomething)(RoomyGraph *g, uint64 parent, uint64 child)) {
-  printf("opening file");
-  printf(filepath);
+//  printf("opening file");
+//  printf(filepath);
   FILE *fp = fopen("./datasets/fig71.dot", "r");
 
 	char buffer[100];
@@ -518,9 +518,7 @@ void forEachLine(RoomyGraph *g, char *filepath, void (*doSomething)(RoomyGraph *
 	regcomp(&isEdgeDefinition, "[0-9] -> [0-9]", 0);
 	regcomp(&number, "\\([0-9]*\\) -> \\([0-9]*\\)", 0);
 
-	int i=0;
 	while(fgets(buffer, 20, fp)) {
-		printf("%i\n", ++i);
 
 		// We assume the lines end in newlines
 		*(index(buffer, '\n')) = '\0';
@@ -545,11 +543,15 @@ void addToNodes(RoomyGraph *g, uint64 parent, uint64 child) {
   RoomyList_add(nodes, &parent);
   RoomyList_add(nodes, &child);
 }
-void addEdgeFromFile(RoomyGraph *g, uint64 parent, uint64 child) {
-  RoomyGraph_addEdge(g, parent, child);
+void addEdgeFromFile(RoomyGraph *g, uint64 a, uint64 b) {
+  printf("Adding edge %lli to %lli\n", a, b);
+  RoomyGraph_addEdge(g, a, b);
+  RoomyGraph_sync(g);
+  RoomyGraph_print(g);
 }
-void RoomyGraph_populateFromDigraph(RoomyGraph *g, char *fp) {
-  digraphGraph = g;
+void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
+  
+/*digraphGraph = g;
 
 	// Add all the nodes to the graph
 	nodes = RoomyList_make("nodes", sizeof(uint64));
@@ -562,21 +564,26 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, char *fp) {
 	RoomyGraph_sync(g);
 	RoomyList_destroy(nodes);
 	
+	RoomyGraph_print(g);
+	
 	// Now, add all the edges
 	forEachLine(g, fp, addEdgeFromFile);
 	RoomyGraph_sync(g);
+	
+	RoomyGraph_print(g);
 
-/*
+	*/
+	
 	char buffer[100];
 	regex_t isEdgeDefinition;
 	regex_t number;
 	regmatch_t match[3];
 	regcomp(&isEdgeDefinition, "[0-9] -> [0-9]", 0);
 	regcomp(&number, "\\([0-9]*\\) -> \\([0-9]*\\)", 0);
-
+  
 	int i=0;
 	while(fgets(buffer, 20, fp)) {
-		printf("%i\n", ++i);
+//		printf("%i\n", ++i);
 
 		// We assume the lines end in newlines
 		*(index(buffer, '\n')) = '\0';
@@ -589,8 +596,6 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, char *fp) {
 			char *child  = strndup(&buffer[match[2].rm_so], match[2].rm_eo - match[2].rm_so);
 			uint64 pNode = string_to_uint64(parent);
 			uint64 cNode = string_to_uint64(child);
-			RoomyList_add(nodes, &pNode);
-			RoomyList_add(nodes, &cNode);
 			
 			if(RGTRUE != RoomyGraph_containsNode(g, pNode)) {
 				RoomyGraph_addNode(g, pNode);
@@ -606,7 +611,6 @@ void RoomyGraph_populateFromDigraph(RoomyGraph *g, char *fp) {
 
 	regfree(&isEdgeDefinition);
 	regfree(&number);
-	*/
 }
 
 /*

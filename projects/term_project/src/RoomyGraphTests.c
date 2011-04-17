@@ -19,6 +19,7 @@ int main(int argc, char ** argv) {
 		 addingSameNodeDoesntIncreaseCount() &&
 		 addEdgeTest() &&
 		 loadFromDigraph() 
+		 && loadFromFigure71()
 //		 && loadFromLargeDigraph()
      && runSimpleCliqueFinding() 
 //		&& getChildren())
@@ -35,12 +36,20 @@ int main(int argc, char ** argv) {
 // by Wasserman et al page 255
 RoomyGraph* createFig71() {
 	RoomyGraph *g = RoomyGraph_make("fig 7.1", 5, 7);
-	//FILE *fp = fopen("./datasets/fig71.dot", "r");
-	char fp[] = "./datasets/fig71.dot";
+	FILE *fp = fopen("./datasets/fig71.dot", "r");
 	RoomyGraph_populateFromDigraph(g, fp);
 	return g;
 }
+int loadFromFigure71() {
+  //printf("loadFromFigure71 started...\n");
+  RoomyGraph *g = createFig71();
+  //RoomyGraph_print(g);
+  RoomyGraph_destroy(g);
+  printf("loadFromFigure71 completed successfully\n");
+  return PASSED;
+}
 int runSimpleCliqueFinding() {
+  printf("runSimpleCliqueFinding start...\n");
 	RoomyGraph *g = createFig71();
 	printf("The graph...\n");
 	RoomyGraph_print(g);
@@ -58,6 +67,7 @@ int runSimpleCliqueFinding() {
 	This is a VERY long test and will take a VERY long time.  Be careful!
 */
 int loadFromLargeDigraph() {
+  //printf("loadFromLargeDigraph started...");
 	FILE *fp = fopen("./datasets/Wiki-Vote.dot", "r");
 	uint64 maxEdges = 12710;
 	uint64 initialCapacity = 999;
@@ -72,14 +82,15 @@ int loadFromLargeDigraph() {
 	return PASSED;
 }
 int loadFromDigraph() {
+  printf("loadFromDigraph started!\n");
 	FILE *fp = fopen("./datasets/simple.dot", "r");
 	uint64 maxEdges = 2;
 	uint64 initialCapacity = 3;
 	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
 	RoomyGraph_populateFromDigraph(g, fp);
-	//printf("Loaded graph =================\n");
-	//RoomyGraph_print(g);
-	//printf("==============================\n"); 
+	printf("Loaded graph =================\n");
+	RoomyGraph_print(g);
+	printf("==============================\n"); 
 	assert(TRUE == RoomyGraph_containsNode(g, 10));
 	assert(TRUE == RoomyGraph_containsNode(g, 2));
 	assert(TRUE == RoomyGraph_containsNode(g, 3));
