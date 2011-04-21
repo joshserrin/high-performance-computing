@@ -38,7 +38,7 @@ RoomyGraph* createFig71() {
 	RoomyGraph *g = RoomyGraph_make("fig 7.1", 5, 7);
 	
 	FILE *fp = fopen("./datasets/fig71.dot", "r");
-	RoomyGraph_populateFromDigraph(g, fp);
+	RoomyGraph_addNodesFromDigraph(g, fp);
 	fclose(fp);
 	FILE *fp2 = fopen("./datasets/fig71.dot", "r");
 	RoomyGraph_addEdgesFromDigraph(g, fp2);
@@ -76,36 +76,30 @@ int loadFromLargeDigraph() {
 	uint64 initialCapacity = 999;
 	RoomyGraph *g = RoomyGraph_make("large-do", maxEdges, initialCapacity);
 	
+	printf("Loading Wiki-Vote.  This may take a long time (~5min)\n");
 	printf("Started %ld\n", time(NULL));
 	FILE *fp = fopen("./datasets/Wiki-Vote.dot", "r");
-	RoomyGraph_populateFromDigraph(g, fp);
+	RoomyGraph_addNodesFromDigraph(g, fp);
 	fclose(fp);
-	printf("All nodes added!\n");
 	FILE *fp2 = fopen("./datasets/Wiki-Vote.dot", "r");
 	RoomyGraph_addEdgesFromDigraph(g, fp2);
 	fclose(fp2);
 	printf("Ended %ld\n", time(NULL));
 
-	//RoomyGraph_print(g);
-
 	printf("loadFromLargeDigraph() completed successfully.\n");
 	return PASSED;
 }
 int loadFromDigraph() {
-//  printf("loadFromDigraph started!\n");
 	uint64 maxEdges = 2;
 	uint64 initialCapacity = 3;
 	RoomyGraph *g = RoomyGraph_make("wiki-vote", maxEdges, initialCapacity);	
 
 	FILE *fp = fopen("./datasets/simple.dot", "r");
-	RoomyGraph_populateFromDigraph(g, fp);
+	RoomyGraph_addNodesFromDigraph(g, fp);
 	fclose(fp);
 	FILE *fp2 = fopen("./datasets/simple.dot", "r");
 	RoomyGraph_addEdgesFromDigraph(g, fp2);
 	fclose(fp2);
-//	printf("Loaded graph =================\n");
-//	RoomyGraph_print(g);
-//	printf("==============================\n"); 
 	assert(TRUE == RoomyGraph_containsNode(g, 10));
 	assert(TRUE == RoomyGraph_containsNode(g, 2));
 	assert(TRUE == RoomyGraph_containsNode(g, 3));

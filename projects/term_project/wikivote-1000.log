@@ -1,0 +1,31 @@
+Populating Graph
+Graph has been populated
+Clique Finding started at 1303066889
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Level:
+[6,10,]
+[6,8,]
+[6,10,]
+[8,10,]
+[6,8,]
+[8,10,]
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Merge identified!
+Level:
+[6,8,10,]
+[6,8,10,]
+[6,8,10,]
+[6,8,10,]
+[6,8,10,]
+[6,8,10,]
+Level:
+Clique Finding ended at 1303067000

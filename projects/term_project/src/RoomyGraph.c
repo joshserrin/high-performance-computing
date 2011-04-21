@@ -443,6 +443,7 @@ void addIfFullyConnected(void *val) {
 		}
 	}
 
+  printf("Merge identified!\n");
 	cliqueFound = RGTRUE;
 	uint64 nextLevelSize = nodeCountAtCurrentLevel + 1;
 	uint64 *newClique[nextLevelSize];
@@ -468,7 +469,7 @@ void doCliqueIteration() {
 
 	// We probably want to remove duplicates but doing so slows the 
 	// algorithm down A LOT!  Rough estimate is by about 5x.
-	RoomyList_removeDupes(nextLevel);
+//	RoomyList_removeDupes(nextLevel);
 
 	// cliques double in size!
 	nodeCountAtCurrentLevel++;
@@ -544,7 +545,7 @@ void RoomyGraph_addEdgesFromDigraph(RoomyGraph *g, FILE *fp) {
   forEachLine(g, fp, addEdgeFromFile);
   RoomyGraph_sync(g);
 }
-void RoomyGraph_populateFromDigraph(RoomyGraph *g, FILE *fp) {
+void RoomyGraph_addNodesFromDigraph(RoomyGraph *g, FILE *fp) {
   digraphGraph = g;
 
 	// Add all the nodes to the graph

@@ -16,6 +16,9 @@ TESTS=$(patsubst %, $(SRC)/%, $(_TESTS))
 _ALGS=GraphAlgorithmTest.o
 ALGS=$(patsubst %, $(SRC)/%, $(_ALGS))
 
+_PROGS=WikiVoteCF.o
+PROGS=$(patsubst %, $(SRC)/%, $(_PROGS))
+
 # simple rule to check for .h modifications when compiling
 # .c into .o files
 %.o: %.c $(DEPS)
@@ -32,10 +35,14 @@ algs: compile $(ALGS)
 examples: compile src/SimpleExample.c
 	$(CC) -o SimpleExample $(OBJ) src/SimpleExample.c $(CFLAGS)
 
-refresh: clean tests examples algs
+wiki: compile
+	$(CC) -o WikiVoteCF $(OBJ) src/WikiVoteCF.c $(CFLAGS)
+
+refresh: clean tests examples algs wiki
 
 clean:
 	rm -f $(SRC)/*.o
 	rm -f RoomyGraphTest
 	rm -f SimpleExample
 	rm -f GraphAlgorithmTest
+	rm -f WikiVoteCF
