@@ -10,9 +10,9 @@ int main(int argc, char **argv) {
 	RoomyGraph *g = RoomyGraph_make("wiki-vote-cf", maxEdges, initialCapacity);
   
   printf("Populating Graph\n");
-  FILE *f1 = fopen("./datasets/Wiki-Vote30000.dot", "r");
+  FILE *f1 = fopen("./datasets/Wiki-Vote50000.dot", "r");
   RoomyGraph_addNodesFromDigraph(g, f1);
-  FILE *f2 = fopen("./datasets/Wiki-Vote30000.dot", "r");
+  FILE *f2 = fopen("./datasets/Wiki-Vote50000.dot", "r");
   RoomyGraph_addEdgesFromDigraph(g, f2);
   fclose(f1);
   fclose(f2);
